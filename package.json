@@ -1,0 +1,30 @@
+{
+  "name": "bizorvia",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "@stripe/stripe-js": "^9.13.0",
+    "@supabase/supabase-js": "^2.112.2",
+    "@tailwindcss/postcss": "^4.3.3",
+    "next": "^16.3.1",
+    "react": "19.0.0",
+    "react-dom": "19.0.0",
+    "stripe": "^22.5.0"
+  },
+  "devDependencies": {
+    "@netlify/plugin-nextjs": "^5.15.13",
+    "@types/node": "22.0.0",
+    "@types/react": "19.0.0",
+    "@types/react-dom": "19.0.0",
+    "autoprefixer": "10.4.20",
+    "postcss": "8.4.49",
+    "tailwindcss": "^4.3.3",
+    "typescript": "5.7.3"
+  }
+}

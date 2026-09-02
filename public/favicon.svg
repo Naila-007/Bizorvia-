@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <defs>
+    <linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#00ff88"/>
+      <stop offset="50%" stop-color="#00c060"/>
+      <stop offset="100%" stop-color="#006030"/>
+    </linearGradient>
+  </defs>
+  <rect width="100" height="100" rx="18" fill="#111713"/>
+  <!-- B shape top bump -->
+  <path d="M22 15 L22 85 L54 85 Q78 85 78 68 Q78 56 66 52 Q78 48 78 35 Q78 15 54 15 Z
+           M36 28 L52 28 Q64 28 64 36 Q64 44 52 44 L36 44 Z
+           M36 57 L54 57 Q66 57 66 67 Q66 77 54 77 L36 77 Z"
+        fill="url(#g)" opacity="0.9"/>
+  <!-- Arrow line -->
+  <line x1="30" y1="72" x2="70" y2="28" stroke="#40ffaa" stroke-width="5" stroke-linecap="round"/>
+  <!-- Arrowhead -->
+  <polygon points="70,28 56,30 68,42" fill="#40ffaa"/>
+  <!-- Circuit dots -->
+  <circle cx="30" cy="72" r="4" fill="#00ff88"/>
+  <circle cx="38" cy="62" r="3" fill="#00dd66"/>
+</svg>

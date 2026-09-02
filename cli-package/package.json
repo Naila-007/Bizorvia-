@@ -1,0 +1,17 @@
+{
+  "name": "bizorvia",
+  "version": "1.0.0",
+  "description": "The coding agent that runs from your terminal, powered by Bizorvia AI",
+  "bin": {
+    "bizorvia": "./bin/bizorvia.js"
+  },
+  "main": "./src/index.js",
+  "type": "module",
+  "keywords": ["ai", "coding", "cli", "agent", "bizorvia"],
+  "author": "Bizorvia",
+  "license": "MIT",
+  "engines": { "node": ">=18" },
+  "dependencies": {
+    "node-fetch": "^3.3.2"
+  }
+}
