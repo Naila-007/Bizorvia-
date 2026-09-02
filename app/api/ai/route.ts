@@ -1,12 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
-
 const PLAN_LIMITS: Record<string, number> = { free: 10, builder: 100, business: 500, scale: 2000 };
+
+function getSupabase() {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co';
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY || 'placeholder';
+  return createClient(url, key);
+}
 
 function sanitize(input: string): string {
   return input
@@ -18,6 +19,7 @@ function sanitize(input: string): string {
 }
 
 async function getUserAndCredits(token: string) {
+  const supabase = getSupabase();
   const { data: { user }, error } = await supabase.auth.getUser(token);
   if (error || !user) return { user: null, profile: null };
   const { data: profile } = await supabase.from('profiles').select('plan, ai_credits_used').eq('id', user.id).single();
@@ -64,7 +66,6 @@ export async function POST(req: NextRequest) {
 
   try {
     let result = '';
-
     if (model === 'deepseek' && process.env.DEEPSEEK_API_KEY) {
       const res = await fetch('https://api.deepseek.com/chat/completions', {
         method: 'POST',
@@ -84,11 +85,10 @@ export async function POST(req: NextRequest) {
       const data = await res.json();
       result = data.content?.[0]?.text || '';
     }
-
     clearTimeout(timeout);
 
-    // Consume credit
     if (userId) {
+      const supabase = getSupabase();
       await supabase.from('profiles').update({ ai_credits_used: creditsUsed + 1 }).eq('id', userId);
     }
 
