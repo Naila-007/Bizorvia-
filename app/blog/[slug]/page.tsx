@@ -385,7 +385,7 @@ function renderMarkdown(text: string) {
   });
 }
 
-export default function BlogPost({ params }: { params: { slug: string } }) {
+export default async function BlogPost({ params }: { params: Promise<{ slug: string }> }) {
   const post = posts[params.slug];
   if (!post) notFound();
   const otherPosts = Object.entries(posts).filter(([s]) => s !== params.slug).slice(0, 3);
