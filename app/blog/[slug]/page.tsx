@@ -1,7 +1,185 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 
-const posts: Record<string, { title: string; date: string; category: string; readTime: string; content: string }> = {
+const posts: Record<string, { title: string; date: string; category: string; readTime: string; content: string }> = {  'how-to-use-bizorvia': {
+    title: 'Your First Day on Bizorvia: A Simple Step-by-Step Guide for New Business Owners',
+    date: '2026-09-22',
+    category: 'Guide',
+    readTime: '8 min',
+    content: `
+Welcome. You just signed up for Bizorvia — and you might be staring at the screen wondering, "Okay… now what?" That is exactly what this guide is for. Step by step. No tech talk. No confusing terms.
+
+## Step 1: Create Your Free Account
+
+- Go to bizorvia.com
+- Click the big button that says Get Started Free
+- Enter your email address and create a password
+- Check your email inbox — you will get a confirmation email
+- Click the link in that email and you are in
+
+## Step 2: Meet Your Dashboard
+
+When you log in you will see 6 modules on your dashboard. Do not panic. You do not need to use all of them right now. Start with just one — we will go through them in the right order.
+
+## Step 3: Business Factory — Start Here
+
+- Type in your business idea in plain words
+- Hit enter and let the AI do the research
+- In about 2 minutes you get: market analysis, your ideal customer, what to charge, and whether the idea is worth building
+
+## Step 4: Studio — Build Your Brand
+
+- Type in your business name and what you do
+- AI generates your colors, fonts, logo style, and tagline
+- Download your brand kit — you now look professional everywhere
+
+## Step 5: Code Studio — Get Online
+
+- Describe the pages you want: homepage, about, services, contact
+- Bizorvia builds them using your brand kit automatically
+- Review, edit anything you want, then hit Publish
+- Your website is live
+
+## Step 6: Payments — Start Making Money
+
+- Click Connect Stripe and follow the steps — takes 5 minutes
+- Create your first product or service with a name, description, and price
+- Share your payment link with a customer — they click, they pay, you get paid
+
+## Step 7: Marketing Hub — Grow Your Audience
+
+- Tell Bizorvia what you sell and who your customers are
+- It builds your content calendar and generates blog posts, social captions, and email sequences
+- You review everything before it goes anywhere
+
+## Step 8: Legal & Trust — Protect Yourself
+
+- Get a plain-English contract for your services
+- Download your client agreement template before you do any paid work
+- Takes 10 minutes and protects you from day one
+
+## Step 9: Do It in This Order
+
+Business Factory then Studio then Code Studio then Payments then Marketing Hub then Legal and Trust. Each step builds on the one before it.
+
+## You Did It
+
+You validated your idea, built your brand, got your website live, set up payments, and have a marketing plan ready. Most people spend months planning and never start. You just did it in one day. Now go share your payment link with your first potential customer. Start free at bizorvia.com.
+    `.trim()
+  },
+  'what-is-bizorvia': {
+    title: 'What Is Bizorvia? The AI Operating System Built for Business Owners',
+    date: '2026-09-22',
+    category: 'Product',
+    readTime: '4 min',
+    content: `
+## What Is Bizorvia?
+
+Running a business in 2026 means juggling a dozen different tools — one for research, another for design, a third for payments, and four more just to keep your marketing alive. Bizorvia changes all of that. It is the world's first AI-powered business operating system that replaces 7+ separate tools with a single unified workspace built specifically for business owners who want to move fast and stay lean.
+
+## The All-in-One AI Workspace
+
+Here is what is built in:
+
+- **Business Factory** — validate ideas, research markets, and score opportunities before you invest a dollar
+- **Studio** — generate your brand kit, logo concepts, and complete visual identity in minutes
+- **Code Studio** — build your website or digital product without writing a single line of code
+- **Payments** — accept payments, manage subscriptions, and send professional invoices via Stripe
+- **Legal and Trust** — access business structure guidance, contract templates, and compliance tools
+- **Marketing Hub** — plan content, write blog posts, schedule social media, and automate email sequences
+
+## Who Is Bizorvia Built For?
+
+- Solo founders launching their first or fifth venture
+- Coaches and consultants who need to look professional on day one
+- Small teams that cannot afford enterprise software stacks
+- Agency owners who want to streamline client delivery without hiring more staff
+
+## Founded by a Real Business Builder
+
+Bizorvia was created by Neelofer (Neelo), founder of Oracle Digital Marketing and Dayyan LLC, based in Chicago. Neelo built Bizorvia out of personal necessity — after years of running her own agency and watching small business owners struggle with tool overload, she engineered the platform she always wished existed.
+
+## Start Running Your Business Smarter
+
+Sign up free at bizorvia.com and experience what it feels like to have every business function in one place — powered by AI that actually understands what you are trying to build.
+    `.trim()
+  },
+  'bizorvia-for-solo-founders': {
+    title: 'Why Solo Founders Are Replacing Their Entire Tool Stack With Bizorvia',
+    date: '2026-09-22',
+    category: 'Strategy',
+    readTime: '5 min',
+    content: `
+## The Tool Overload Problem Nobody Talks About
+
+The average independent business owner pays for 8 to 12 separate software subscriptions just to keep their operation running — and most of those tools do not talk to each other. That adds up to $400 to $800 per month before you factor in the hours lost switching between platforms.
+
+## The Real Cost Is Not Money — It Is Momentum
+
+Every time you switch tools you lose your train of thought. Every time you hit a paywall you lose your momentum. The fragmented tool stack is the single biggest reason solo founders stay stuck in setup mode instead of generating revenue. Bizorvia was built to solve this exact problem.
+
+## One Workspace. Every Function. Powered by AI.
+
+Bizorvia consolidates every core business function into a single intelligent platform. Research, branding, website building, payments, legal, and marketing — all of it lives inside Bizorvia, and AI accelerates every step.
+
+## A Real Workflow: Idea to First Client Using Only Bizorvia
+
+- **Day 1** — Use Business Factory to validate your offer and research your market
+- **Day 2** — Generate your brand kit in Studio then publish your website with Code Studio
+- **Day 3** — Set up your payment link through the Payments module
+- **Day 4** — Draft your launch content and email sequence inside Marketing Hub
+- **Day 5** — Land your first client with a signed contract from Legal and Trust
+
+Five days. One platform. No subscription juggling.
+
+## One Flat Fee Beats the Old Stack Every Time
+
+Instead of paying separately for each tool and watching your monthly bill climb toward $600, Bizorvia offers everything at one flat monthly rate. Stop renting a dozen apartments. Own the building.
+
+Visit bizorvia.com and start your free account today.
+    `.trim()
+  },
+  'bizorvia-features-2026': {
+    title: 'Inside Bizorvia: Every Feature That Runs Your Business on Autopilot',
+    date: '2026-09-22',
+    category: 'Product',
+    readTime: '5 min',
+    content: `
+## The Operating System Your Business Has Always Needed
+
+Most business software solves one problem. Bizorvia solves all of them. Built by Neelofer (Neelo), founder of Oracle Digital Marketing in Chicago, Bizorvia is the AI-powered operating system that handles every layer of your business — from your first idea to your hundredth paying client.
+
+## Business Factory — Validate Before You Build
+
+Feed it a business concept and it returns market research, competitive landscape analysis, demand signals, and an opportunity score. For first-time founders, serial entrepreneurs, and consultants scoping new service offerings.
+
+## Studio — Your Brand, Built in Minutes
+
+Studio generates your complete visual identity — logo concepts, color palette, typography, and brand guidelines. Coaches, consultants, and service providers who need to look credible without hiring a design agency.
+
+## Code Studio — Websites and Products Without Code
+
+Build and publish your website or digital product using AI-assisted tools. No developers needed. Describe what you need and watch it come to life.
+
+## Payments — Get Paid Without the Friction
+
+Integrates directly with Stripe to give you payment links, subscription management, invoicing, and revenue tracking — all inside Bizorvia.
+
+## Marketing Hub — Content That Works While You Sleep
+
+Plan your content calendar, write blog posts, generate social media copy, and build automated email sequences — all from one dashboard.
+
+## Legal and Trust — Protect Your Business From Day One
+
+Access business structure guidance, customizable contract templates, and compliance checklists so your business is protected before problems arise.
+
+## Everything Works Together
+
+Your brand flows into your website. Your website connects to your payments. Your payments inform your marketing. It is a real operating system, not a collection of disconnected apps.
+
+Create your free account at bizorvia.com today.
+    `.trim()
+  },
   'ai-tools-for-small-business-2025': {
     title: '10 AI Tools That Are Changing Small Business in 2025',
     date: '2025-06-15', category: 'AI Tools', readTime: '5 min',
