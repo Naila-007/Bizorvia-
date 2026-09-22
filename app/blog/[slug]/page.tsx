@@ -386,7 +386,8 @@ function renderMarkdown(text: string) {
 }
 
 export default async function BlogPost({ params }: { params: Promise<{ slug: string }> }) {
-  const post = posts[params.slug];
+  const { slug } = await params;
+const post = posts[slug];
   if (!post) notFound();
   const otherPosts = Object.entries(posts).filter(([s]) => s !== params.slug).slice(0, 3);
 
