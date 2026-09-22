@@ -26,7 +26,12 @@ export async function POST(req: NextRequest) {
 
     // Lazy Stripe init — only runs when API key is available at runtime
     const Stripe = (await import("stripe")).default;
-    const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
+    if (!process.env.STRIPE_SECRET_KEY) {
+  return NextResponse.json({ error: "Stripe not configured" }, { status: 500 });
+}
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
+  timeout: 8000,
+});
 
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ["card"],
