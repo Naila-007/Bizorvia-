@@ -361,8 +361,10 @@ Pick one metric. Measure it for 30 days. The data will tell you everything you n
   },
 };
 
-export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
-  const post = posts[params.slug];
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
+  const { slug } = await params;
+  const post = posts[slug];
+  
   if (!post) return { title: 'Not Found' };
   return { title: `${post.title} — Bizorvia Blog`, description: post.content.slice(0, 155) };
 }
