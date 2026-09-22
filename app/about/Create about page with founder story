@@ -1,0 +1,83 @@
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "About — Bizorvia",
+  description: "Bizorvia is an AI-powered business operating system built by Neelofer (Neelo), founder of Oracle Digital Marketing. Turn one idea into a live, income-generating business.",
+};
+
+export default function AboutPage() {
+  return (
+    <div style={{ minHeight: "100vh", background: "#0a0a0a", color: "#fff", fontFamily: "Inter,sans-serif" }}>
+      <header style={{ borderBottom: "1px solid #1a1a1a", padding: "16px 32px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <a href="/" style={{ fontWeight: 700, fontSize: 18, textDecoration: "none", color: "#fff" }}>Bizorvia</a>
+        <div style={{ display: "flex", gap: 16, alignItems: "center" }}>
+          <a href="/pricing" style={{ color: "#888", textDecoration: "none", fontSize: 14 }}>Pricing</a>
+          <a href="/login" style={{ color: "#888", textDecoration: "none", fontSize: 14 }}>Sign in</a>
+          <a href="/signup" style={{ background: "#d8ff72", color: "#0a0a0a", padding: "8px 20px", borderRadius: 8, fontWeight: 700, fontSize: 13, textDecoration: "none" }}>Get started free</a>
+        </div>
+      </header>
+
+      <div style={{ maxWidth: 780, margin: "0 auto", padding: "80px 32px" }}>
+        <p style={{ color: "#d8ff72", fontSize: 13, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 20 }}>About Bizorvia</p>
+        <h1 style={{ fontSize: 52, fontWeight: 900, lineHeight: 1.1, marginBottom: 32, letterSpacing: "-0.02em" }}>
+          Built for founders who move fast
+        </h1>
+        <p style={{ color: "#999", fontSize: 18, lineHeight: 1.8, marginBottom: 24 }}>
+          Bizorvia is an AI-powered business operating system. It replaces the seven-tab juggle of separate tools — research, branding, website, payments, legal, marketing — with one unified workspace that takes you from idea to income.
+        </p>
+        <p style={{ color: "#999", fontSize: 18, lineHeight: 1.8, marginBottom: 48 }}>
+          We built Bizorvia for solo founders and small teams who know exactly what they want to build but don't have an entire operations department behind them. The platform handles the infrastructure so you can focus on the product.
+        </p>
+
+        <div style={{ borderTop: "1px solid #1a1a1a", paddingTop: 48, marginBottom: 48 }}>
+          <h2 style={{ fontSize: 28, fontWeight: 800, marginBottom: 20 }}>The founder</h2>
+          <p style={{ color: "#999", fontSize: 17, lineHeight: 1.8, marginBottom: 16 }}>
+            Bizorvia was founded by <strong style={{ color: "#fff" }}>Neelofer (Neelo)</strong>, a digital marketing strategist and solo founder based in Chicago, Illinois. Neelo runs <strong style={{ color: "#fff" }}>Oracle Digital Marketing</strong> — a full-service agency specializing in SEO, AEO, GEO, and AI-driven growth strategy — and operates a portfolio of digital brands under <strong style={{ color: "#fff" }}>Dayyan LLC</strong>.
+          </p>
+          <p style={{ color: "#999", fontSize: 17, lineHeight: 1.8 }}>
+            After years of building businesses across multiple platforms and stitching together too many disconnected tools, Neelo built Bizorvia to be the system she always needed — one workspace, every business function, powered by AI.
+          </p>
+        </div>
+
+        <div style={{ background: "#111", border: "1px solid #1a1a1a", borderRadius: 16, padding: 32, marginBottom: 48 }}>
+          <h2 style={{ fontSize: 22, fontWeight: 800, marginBottom: 20 }}>What Bizorvia does</h2>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+            {[
+              "Deep research & market analysis",
+              "AI business planning",
+              "Brand identity & studio",
+              "Website & app builder",
+              "Payments & subscriptions",
+              "Domain management",
+              "Marketing & growth tools",
+              "Legal & business trust",
+            ].map((item) => (
+              <div key={item} style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                <span style={{ color: "#d8ff72", fontSize: 16 }}>✦</span>
+                <span style={{ color: "#ccc", fontSize: 15 }}>{item}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div style={{ display: "flex", gap: 16 }}>
+          <a href="/signup" style={{ background: "#d8ff72", color: "#0a0a0a", padding: "14px 28px", borderRadius: 10, fontWeight: 800, fontSize: 15, textDecoration: "none" }}>
+            Start free →
+          </a>
+          <a href="/pricing" style={{ background: "transparent", color: "#fff", padding: "14px 28px", borderRadius: 10, fontWeight: 700, fontSize: 15, textDecoration: "none", border: "1px solid #333" }}>
+            See pricing
+          </a>
+        </div>
+      </div>
+
+      <footer style={{ borderTop: "1px solid #1a1a1a", padding: "32px", textAlign: "center" }}>
+        <p style={{ color: "#444", fontSize: 13 }}>
+          © 2026 Bizorvia · Dayyan LLC · Chicago, IL ·{" "}
+          <a href="/privacy" style={{ color: "#666", textDecoration: "none" }}>Privacy</a>
+          {" · "}
+          <a href="/terms" style={{ color: "#666", textDecoration: "none" }}>Terms</a>
+        </p>
+      </footer>
+    </div>
+  );
+}
