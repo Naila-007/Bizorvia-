@@ -389,7 +389,7 @@ export default async function BlogPost({ params }: { params: Promise<{ slug: str
   const { slug } = await params;
 const post = posts[slug];
   if (!post) notFound();
-  const otherPosts = Object.entries(posts).filter(([s]) => s !== params.slug).slice(0, 3);
+  const otherPosts = Object.entries(posts).filter(([s]) => s !== slug).slice(0, 3);
 
   return (
     <div style={{ minHeight: '100vh', background: '#0a0a0a', color: '#fff', fontFamily: 'Inter,sans-serif' }}>
