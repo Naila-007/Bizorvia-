@@ -5,6 +5,11 @@ export default function sitemap(): MetadataRoute.Sitemap {
   const now = new Date();
 
   const blogSlugs = [
+    const blogSlugs = [
+    'how-to-use-bizorvia',
+    'what-is-bizorvia',
+    'bizorvia-for-solo-founders',
+    'bizorvia-features-2026',
     'ai-tools-for-small-business-2025',
     'how-to-automate-your-business-with-ai',
     'ai-vs-hiring-what-makes-sense',
