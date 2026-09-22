@@ -13,8 +13,9 @@ export async function POST(req: NextRequest) {
     if (!token) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
     const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+     process.env.SUPABASE_URL!,
+process.env.SUPABASE_ANON_KEY! 
+
     );
 
     const { data: { user }, error: authError } = await supabase.auth.getUser(token);
