@@ -205,7 +205,7 @@ export default function AdminPage() {
             </div>
             <div style={{ background:"#111", border:"1px solid #f59e0b33", borderRadius:12, padding:24 }}>
               <div style={{ fontWeight:700, fontSize:16, marginBottom:4 }}>💳 Stripe Payments — Coming Next</div>
-              <div style={{ color:"#666", fontSize:14 }}>Add STRIPE_SECRET_KEY to Netlify env vars to enable real billing.</div>
+              <div style={{ color:"#666", fontSize:14 }}>Add STRIPE_SECRET_KEY to Vercel env vars to enable real billing.</div>
             </div>
           </div>
         )}
@@ -214,7 +214,7 @@ export default function AdminPage() {
           <div style={{ display:"grid", gap:16 }}>
             {[
               { name:"Supabase Database",  status:"Operational",    color:"#d8ff72", detail: `${profiles.length} users in profiles table` },
-              { name:"Netlify Hosting",    status:"Operational",    color:"#d8ff72", detail:"bizorvia.com live with SSL + security headers" },
+              { name:"Vercel Hosting",     status:"Operational",    color:"#d8ff72", detail:"bizorvia.com live on Vercel with SSL + security headers" },
               { name:"Authentication",     status:"Operational",    color:"#d8ff72", detail:"Email/password auth + JWT verification" },
               { name:"AI API (Claude)",    status: process.env.NEXT_PUBLIC_AI_ENABLED === "true" ? "Configured" : "Add ANTHROPIC_API_KEY", color: "#f59e0b", detail:"Secured behind auth + rate limiting" },
               { name:"Stripe Payments",    status:"Not Connected",  color:"#ef4444", detail:"Add STRIPE_SECRET_KEY to enable billing" },
