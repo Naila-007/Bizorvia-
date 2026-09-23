@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 
-const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'neelodigitalproducts@gmail.com';
+const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'oracledigitalmarketingagency@gmail.com';
 const ALLOWED_ORIGINS = ['https://bizorvia.com', 'https://www.bizorvia.com', 'https://bizorvia-full-fgyb4wkys-sellovate-s-projects.vercel.app'];
 
 export async function GET(req: NextRequest) {
