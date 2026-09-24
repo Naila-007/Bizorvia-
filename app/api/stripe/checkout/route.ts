@@ -13,9 +13,8 @@ export async function POST(req: NextRequest) {
     if (!token) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
     const supabase = createClient(
-     process.env.SUPABASE_URL!,
-process.env.SUPABASE_ANON_KEY! 
-
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
     );
 
     const { data: { user }, error: authError } = await supabase.auth.getUser(token);
@@ -28,11 +27,11 @@ process.env.SUPABASE_ANON_KEY!
     // Lazy Stripe init — only runs when API key is available at runtime
     const Stripe = (await import("stripe")).default;
     if (!process.env.STRIPE_SECRET_KEY) {
-  return NextResponse.json({ error: "Stripe not configured" }, { status: 500 });
-}
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
-  timeout: 8000,
-});
+      return NextResponse.json({ error: "Stripe not configured" }, { status: 500 });
+    }
+    const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
+      timeout: 8000,
+    });
 
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ["card"],
