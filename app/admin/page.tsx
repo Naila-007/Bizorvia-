@@ -3,12 +3,21 @@ import { useEffect, useState, useCallback } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/lib/supabase";
 
-// Admin check happens server-side via the API
 type Profile = {
   id: string;
   email: string;
   full_name: string | null;
   plan: string;
+  created_at: string;
+};
+
+type Contact = {
+  id: string;
+  name: string;
+  email: string;
+  company: string | null;
+  plan: string | null;
+  message: string;
   created_at: string;
 };
 
@@ -22,37 +31,44 @@ type Stats = {
 export default function AdminPage() {
   const { user, loading } = useAuth();
   const [profiles, setProfiles] = useState<Profile[]>([]);
+  const [contacts, setContacts] = useState<Contact[]>([]);
   const [stats, setStats] = useState<Stats>({ total: 0, free: 0, paid: 0, today: 0 });
   const [dataLoading, setDataLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("overview");
   const [search, setSearch] = useState("");
+  const [contactSearch, setContactSearch] = useState("");
+  const [expandedContact, setExpandedContact] = useState<string | null>(null);
   const [unauthorized, setUnauthorized] = useState(false);
 
   const fetchAdminData = useCallback(async () => {
     if (!user) return;
     setDataLoading(true);
 
-    // Get current session token — sent to our secure API
     const { data: { session } } = await supabase.auth.getSession();
     if (!session) { setUnauthorized(true); return; }
 
-    const res = await fetch("/api/admin/users", {
-      headers: { "Authorization": `Bearer ${session.access_token}` }
-    });
+    const headers = { "Authorization": `Bearer ${session.access_token}` };
 
-    if (res.status === 403) { setUnauthorized(true); setDataLoading(false); return; }
-    if (!res.ok) { setDataLoading(false); return; }
+    const usersRes = await fetch("/api/admin/users", { headers });
+    if (usersRes.status === 403) { setUnauthorized(true); setDataLoading(false); return; }
+    if (usersRes.ok) {
+      const data: Profile[] = await usersRes.json();
+      setProfiles(data);
+      const today = new Date().toISOString().split("T")[0];
+      setStats({
+        total: data.length,
+        free: data.filter(p => p.plan === "free").length,
+        paid: data.filter(p => p.plan !== "free").length,
+        today: data.filter(p => p.created_at?.startsWith(today)).length,
+      });
+    }
 
-    const data: Profile[] = await res.json();
-    setProfiles(data);
+    const contactsRes = await fetch("/api/admin/contacts", { headers });
+    if (contactsRes.ok) {
+      const cData: Contact[] = await contactsRes.json();
+      setContacts(cData);
+    }
 
-    const today = new Date().toISOString().split("T")[0];
-    setStats({
-      total: data.length,
-      free: data.filter(p => p.plan === "free").length,
-      paid: data.filter(p => p.plan !== "free").length,
-      today: data.filter(p => p.created_at?.startsWith(today)).length,
-    });
     setDataLoading(false);
   }, [user]);
 
@@ -89,12 +105,16 @@ export default function AdminPage() {
     </div>
   );
 
-  const filtered = profiles.filter(p =>
+  const filteredUsers = profiles.filter(p =>
     p.email?.toLowerCase().includes(search.toLowerCase()) ||
     p.full_name?.toLowerCase().includes(search.toLowerCase())
   );
 
-  const S: React.CSSProperties = {};
+  const filteredContacts = contacts.filter(c =>
+    c.email?.toLowerCase().includes(contactSearch.toLowerCase()) ||
+    c.name?.toLowerCase().includes(contactSearch.toLowerCase()) ||
+    c.company?.toLowerCase().includes(contactSearch.toLowerCase())
+  );
 
   return (
     <div style={{ minHeight:"100vh", background:"#0a0a0a", color:"#fff", fontFamily:"Inter, sans-serif" }}>
@@ -118,12 +138,20 @@ export default function AdminPage() {
         </div>
 
         <div style={{ display:"flex", gap:4, marginBottom:32, borderBottom:"1px solid #1a1a1a" }}>
-          {["overview","users","plans","health"].map(tab => (
+          {["overview","contacts","users","plans","health"].map(tab => (
             <button key={tab} onClick={() => setActiveTab(tab)} style={{
               background:"none", border:"none", color: activeTab===tab ? "#d8ff72" : "#666",
               padding:"12px 20px", cursor:"pointer", fontSize:14, fontWeight:600, textTransform:"capitalize",
-              borderBottom: activeTab===tab ? "2px solid #d8ff72" : "2px solid transparent"
-            }}>{tab}</button>
+              borderBottom: activeTab===tab ? "2px solid #d8ff72" : "2px solid transparent",
+              position:"relative"
+            }}>
+              {tab}
+              {tab === "contacts" && contacts.length > 0 && (
+                <span style={{ background:"#d8ff72", color:"#0a0a0a", borderRadius:10, fontSize:10, fontWeight:700, padding:"1px 6px", marginLeft:6 }}>
+                  {contacts.length}
+                </span>
+              )}
+            </button>
           ))}
         </div>
 
@@ -143,15 +171,35 @@ export default function AdminPage() {
               ))}
             </div>
 
+            <div style={{ background:"#111", border:"1px solid #1a1a1a", borderRadius:12, padding:24, marginBottom:24 }}>
+              <div style={{ display:"flex", justifyContent:"space-between", marginBottom:20 }}>
+                <b style={{ fontSize:16 }}>Recent Contact Submissions</b>
+                <button onClick={() => setActiveTab("contacts")} style={{ background:"none", border:"1px solid #333", color:"#999", padding:"8px 16px", borderRadius:8, cursor:"pointer", fontSize:13 }}>View all →</button>
+              </div>
+              {contacts.length === 0 ? (
+                <div style={{ color:"#666", textAlign:"center", padding:32 }}><p>No contact submissions yet.</p></div>
+              ) : contacts.slice(0, 3).map(c => (
+                <div key={c.id} style={{ display:"flex", alignItems:"flex-start", gap:16, padding:"12px 0", borderBottom:"1px solid #1a1a1a" }}>
+                  <div style={{ width:40, height:40, borderRadius:"50%", background:"#1a1a2a", display:"flex", alignItems:"center", justifyContent:"center", color:"#a78bfa", fontWeight:700, flexShrink:0 }}>
+                    {c.name?.slice(0,1).toUpperCase()}
+                  </div>
+                  <div style={{ flex:1, minWidth:0 }}>
+                    <div style={{ fontWeight:600, fontSize:14 }}>{c.name}</div>
+                    <div style={{ color:"#666", fontSize:13 }}>{c.email}{c.company ? ` · ${c.company}` : ""}</div>
+                    <div style={{ color:"#555", fontSize:12, marginTop:4, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{c.message}</div>
+                  </div>
+                  <span style={{ color:"#555", fontSize:12, flexShrink:0 }}>{new Date(c.created_at).toLocaleDateString()}</span>
+                </div>
+              ))}
+            </div>
+
             <div style={{ background:"#111", border:"1px solid #1a1a1a", borderRadius:12, padding:24 }}>
               <div style={{ display:"flex", justifyContent:"space-between", marginBottom:20 }}>
                 <b style={{ fontSize:16 }}>Recent Signups</b>
                 <button onClick={() => setActiveTab("users")} style={{ background:"none", border:"1px solid #333", color:"#999", padding:"8px 16px", borderRadius:8, cursor:"pointer", fontSize:13 }}>View all →</button>
               </div>
               {profiles.length === 0 ? (
-                <div style={{ color:"#666", textAlign:"center", padding:32 }}>
-                  <p>No users yet. Share bizorvia.com!</p>
-                </div>
+                <div style={{ color:"#666", textAlign:"center", padding:32 }}><p>No users yet. Share bizorvia.com!</p></div>
               ) : profiles.slice(0, 5).map(p => (
                 <div key={p.id} style={{ display:"flex", alignItems:"center", gap:16, padding:"12px 0", borderBottom:"1px solid #1a1a1a" }}>
                   <div style={{ width:40, height:40, borderRadius:"50%", background:"#1a2a1a", display:"flex", alignItems:"center", justifyContent:"center", color:"#d8ff72", fontWeight:700, flexShrink:0 }}>
@@ -169,6 +217,47 @@ export default function AdminPage() {
           </div>
         )}
 
+        {activeTab === "contacts" && (
+          <div>
+            <input value={contactSearch} onChange={e => setContactSearch(e.target.value)} placeholder="Search by name, email or company…"
+              style={{ background:"#111", border:"1px solid #333", color:"#fff", padding:"12px 16px", borderRadius:8, fontSize:14, outline:"none", width:"100%", marginBottom:20, boxSizing:"border-box" }} />
+            {filteredContacts.length === 0 ? (
+              <div style={{ background:"#111", border:"1px solid #1a1a1a", borderRadius:12, padding:48, textAlign:"center", color:"#555" }}>
+                {contacts.length === 0 ? "No contact submissions yet." : "No results found."}
+              </div>
+            ) : filteredContacts.map(c => (
+              <div key={c.id} style={{ background:"#111", border:"1px solid #1a1a1a", borderRadius:12, padding:20, marginBottom:12 }}>
+                <div style={{ display:"flex", alignItems:"flex-start", gap:16 }}>
+                  <div style={{ width:44, height:44, borderRadius:"50%", background:"#1a1a2a", display:"flex", alignItems:"center", justifyContent:"center", color:"#a78bfa", fontWeight:700, fontSize:18, flexShrink:0 }}>
+                    {c.name?.slice(0,1).toUpperCase()}
+                  </div>
+                  <div style={{ flex:1, minWidth:0 }}>
+                    <div style={{ display:"flex", alignItems:"center", gap:12, flexWrap:"wrap" }}>
+                      <span style={{ fontWeight:700, fontSize:15 }}>{c.name}</span>
+                      {c.company && <span style={{ color:"#666", fontSize:13 }}>· {c.company}</span>}
+                      {c.plan && <span style={{ background:"#1a2a1a", color:"#d8ff72", padding:"2px 10px", borderRadius:20, fontSize:11, fontWeight:600 }}>{c.plan}</span>}
+                      <span style={{ color:"#555", fontSize:12, marginLeft:"auto" }}>{new Date(c.created_at).toLocaleString()}</span>
+                    </div>
+                    <a href={`mailto:${c.email}`} style={{ color:"#7ec8e3", fontSize:13, textDecoration:"none" }}>{c.email}</a>
+                  </div>
+                </div>
+                <div onClick={() => setExpandedContact(expandedContact === c.id ? null : c.id)}
+                  style={{ marginTop:16, cursor:"pointer", background:"#0a0a0a", borderRadius:8, padding:"12px 16px", display:"flex", justifyContent:"space-between", alignItems:"flex-start" }}>
+                  {expandedContact === c.id
+                    ? <p style={{ margin:0, color:"#ccc", fontSize:14, lineHeight:1.6, whiteSpace:"pre-wrap", flex:1 }}>{c.message}</p>
+                    : <p style={{ margin:0, color:"#777", fontSize:13, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap", flex:1 }}>{c.message}</p>}
+                  <span style={{ color:"#555", fontSize:12, marginLeft:16, flexShrink:0 }}>{expandedContact === c.id ? "▲ hide" : "▼ read"}</span>
+                </div>
+                <div style={{ marginTop:12 }}>
+                  <a href={`mailto:${c.email}?subject=Re: Your message to Bizorvia`}
+                    style={{ background:"#d8ff72", color:"#0a0a0a", padding:"8px 16px", borderRadius:8, fontSize:13, fontWeight:700, textDecoration:"none" }}>Reply</a>
+                </div>
+              </div>
+            ))}
+            <div style={{ color:"#555", fontSize:13, marginTop:12, textAlign:"right" }}>{filteredContacts.length} of {contacts.length} submissions</div>
+          </div>
+        )}
+
         {activeTab === "users" && (
           <div>
             <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search by email or name…"
@@ -177,9 +266,9 @@ export default function AdminPage() {
               <div style={{ display:"grid", gridTemplateColumns:"1fr 2fr 1fr 1fr", padding:"12px 20px", borderBottom:"1px solid #1a1a1a", color:"#555", fontSize:12, fontWeight:600, textTransform:"uppercase" }}>
                 <span>Name</span><span>Email</span><span>Plan</span><span>Joined</span>
               </div>
-              {filtered.length === 0
+              {filteredUsers.length === 0
                 ? <div style={{ color:"#666", textAlign:"center", padding:32 }}>No users found</div>
-                : filtered.map(p => (
+                : filteredUsers.map(p => (
                   <div key={p.id} style={{ display:"grid", gridTemplateColumns:"1fr 2fr 1fr 1fr", padding:"16px 20px", borderBottom:"1px solid #111", alignItems:"center" }}>
                     <span style={{ fontWeight:600, fontSize:14 }}>{p.full_name || "—"}</span>
                     <span style={{ color:"#999", fontSize:13 }}>{p.email}</span>
@@ -189,7 +278,7 @@ export default function AdminPage() {
                 ))
               }
             </div>
-            <div style={{ color:"#555", fontSize:13, marginTop:12, textAlign:"right" }}>{filtered.length} of {profiles.length} users</div>
+            <div style={{ color:"#555", fontSize:13, marginTop:12, textAlign:"right" }}>{filteredUsers.length} of {profiles.length} users</div>
           </div>
         )}
 
@@ -213,11 +302,13 @@ export default function AdminPage() {
         {activeTab === "health" && (
           <div style={{ display:"grid", gap:16 }}>
             {[
-              { name:"Supabase Database",  status:"Operational",    color:"#d8ff72", detail: `${profiles.length} users in profiles table` },
-              { name:"Vercel Hosting",     status:"Operational",    color:"#d8ff72", detail:"bizorvia.com live on Vercel with SSL + security headers" },
-              { name:"Authentication",     status:"Operational",    color:"#d8ff72", detail:"Email/password auth + JWT verification" },
-              { name:"AI API (Claude)",    status: process.env.NEXT_PUBLIC_AI_ENABLED === "true" ? "Configured" : "Add ANTHROPIC_API_KEY", color: "#f59e0b", detail:"Secured behind auth + rate limiting" },
-              { name:"Stripe Payments",    status:"Not Connected",  color:"#ef4444", detail:"Add STRIPE_SECRET_KEY to enable billing" },
+              { name:"Supabase Database",   status:"Operational", color:"#d8ff72", detail:`${profiles.length} users in profiles table` },
+              { name:"Contact Submissions", status:"Operational", color:"#d8ff72", detail:`${contacts.length} submissions in contact_submissions table` },
+              { name:"Vercel Hosting",      status:"Operational", color:"#d8ff72", detail:"bizorvia.com live on Vercel with SSL + security headers" },
+              { name:"Authentication",      status:"Operational", color:"#d8ff72", detail:"Email/password auth + JWT verification" },
+              { name:"Email (Resend)",      status:"Operational", color:"#d8ff72", detail:"hello@bizorvia.com — domain verified, DKIM + SPF active" },
+              { name:"AI API (Claude)",     status: process.env.NEXT_PUBLIC_AI_ENABLED === "true" ? "Configured" : "Add ANTHROPIC_API_KEY", color:"#f59e0b", detail:"Secured behind auth + rate limiting" },
+              { name:"Stripe Payments",     status:"Not Connected", color:"#ef4444", detail:"Add STRIPE_SECRET_KEY to enable billing" },
             ].map(item => (
               <div key={item.name} style={{ background:"#111", border:"1px solid #1a1a1a", borderRadius:12, padding:24, display:"flex", alignItems:"center", gap:20 }}>
                 <div style={{ width:12, height:12, borderRadius:"50%", background:item.color, flexShrink:0 }} />
