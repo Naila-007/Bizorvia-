@@ -1,10 +1,14 @@
 "use client";
 import { useState } from "react";
 import { supabase } from "@/lib/supabase";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Suspense } from "react";
 
-export default function Login() {
+function LoginForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const from = searchParams.get("from");
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -19,7 +23,12 @@ export default function Login() {
       setError(error.message);
       setLoading(false);
     } else {
-      router.push("/");
+      // Redirect back to the page that sent the user to login
+      if (from === "admin") {
+        router.push("/admin");
+      } else {
+        router.push("/");
+      }
     }
   }
 
@@ -59,10 +68,21 @@ export default function Login() {
             {loading ? "Signing in…" : "Sign in →"}
           </button>
         </form>
+        <p className="auth-switch" style={{ marginTop: 12 }}>
+          <a href="/forgot-password" style={{ color: "#888", fontSize: 13 }}>Forgot your password?</a>
+        </p>
         <p className="auth-switch">
           No account? <a href="/signup">Create one free</a>
         </p>
       </div>
     </div>
+  );
+}
+
+export default function Login() {
+  return (
+    <Suspense fallback={<div className="auth-page"><div className="auth-card"><p style={{textAlign:'center',color:'#666'}}>Loading…</p></div></div>}>
+      <LoginForm />
+    </Suspense>
   );
 }
