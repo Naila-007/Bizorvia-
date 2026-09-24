@@ -22,7 +22,7 @@ export default function SuccessPage() {
     if (!verified) return;
     const t = setInterval(() => {
       setCountdown(c => {
-        if (c <= 1) { clearInterval(t); window.location.href = '/'; }
+        if (c <= 1) { clearInterval(t); window.location.href = '/dashboard'; }
         return c - 1;
       });
     }, 1000);
@@ -57,8 +57,8 @@ export default function SuccessPage() {
         <div style={{ background:'#1a2a1a', border:'1px solid #d8ff72', borderRadius:12, padding:'16px 32px', display:'inline-block', margin:'0 0 24px' }}>
           <span style={{ color:'#d8ff72', fontWeight:700 }}>✓ Payment confirmed</span>
         </div>
-        <p style={{ color:'#555', fontSize:14 }}>Redirecting to dashboard in {countdown}s…</p>
-        <a href='/' style={{ display:'inline-block', marginTop:16, background:'#d8ff72', color:'#0a0a0a', padding:'12px 28px', borderRadius:10, textDecoration:'none', fontWeight:700 }}>
+        <p style={{ color:'#555', fontSize:14 }}>Redirecting to your dashboard in {countdown}s…</p>
+        <a href='/dashboard' style={{ display:'inline-block', marginTop:16, background:'#d8ff72', color:'#0a0a0a', padding:'12px 28px', borderRadius:10, textDecoration:'none', fontWeight:700 }}>
           Go to Dashboard →
         </a>
       </div>
