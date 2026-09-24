@@ -1,4 +1,4 @@
-import type { Metadata } from 'next';
+import type { Metadata } from 'next'; export const revalidate = 0;
 
 export const metadata: Metadata = {
   title: 'Features — Bizorvia | Everything Your Business Needs',
