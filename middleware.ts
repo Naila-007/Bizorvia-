@@ -3,11 +3,13 @@ import { NextRequest, NextResponse } from 'next/server';
 export function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
-  // Block direct access to /admin — redirect to login if no session cookie
   if (pathname.startsWith('/admin')) {
-    const token = req.cookies.get('sb-access-token')?.value ||
-                  req.cookies.get('sb-xcbezfmthtcbmcpfilyk-auth-token')?.value;
-    if (!token) {
+    const cookies = req.cookies.getAll();
+    const hasSession = cookies.some(c =>
+      c.name.startsWith('sb-') ||
+      c.name === 'supabase-auth-token'
+    );
+    if (!hasSession) {
       return NextResponse.redirect(new URL('/login?from=admin', req.url));
     }
   }
