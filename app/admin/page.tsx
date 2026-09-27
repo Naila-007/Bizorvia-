@@ -63,7 +63,7 @@ export default function AdminPage() {
       });
     }
 
-    const contactsRes = await fetch("/api/admin/contacts", { headers });
+    const contactsRes = await fetch("/api/admin/users/contacts", { headers });
     if (contactsRes.ok) {
       const cData: Contact[] = await contactsRes.json();
       setContacts(cData);
