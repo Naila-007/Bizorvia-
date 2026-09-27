@@ -1,3 +1,4 @@
+
 "use client";
 import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
@@ -45,8 +46,11 @@ const plans = [
 export default function PricingPage() {
   const { user } = useAuth();
   const [loading, setLoading] = useState<string | null>(null);
+  const [errorMsg, setErrorMsg] = useState<string>("");
 
   async function handleCheckout(planId: string) {
+    setErrorMsg("");
+
     if (planId === "free") {
       window.location.href = user ? "/" : "/signup";
       return;
@@ -59,23 +63,40 @@ export default function PricingPage() {
 
     setLoading(planId);
 
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session) { window.location.href = "/login"; return; }
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        window.location.href = "/login";
+        return;
+      }
 
-    const res = await fetch("/api/stripe/checkout", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${session.access_token}`,
-      },
-      body: JSON.stringify({ plan: planId }),
-    });
+      const res = await fetch("/api/stripe/checkout", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify({ plan: planId }),
+      });
 
-    const data = await res.json();
-    if (data.url) {
-      window.location.href = data.url;
-    } else {
-      alert("Something went wrong. Please try again.");
+      let data: any = {};
+      try {
+        data = await res.json();
+      } catch {
+        setErrorMsg(`Server error (${res.status}). Please try again or contact support.`);
+        setLoading(null);
+        return;
+      }
+
+      if (res.ok && data.url) {
+        window.location.href = data.url;
+      } else {
+        setErrorMsg(data.error || `Checkout failed (status ${res.status}). Please try again.`);
+        setLoading(null);
+      }
+    } catch (err: any) {
+      console.error("[checkout] Client error:", err);
+      setErrorMsg(err?.message || "Network error — please check your connection and try again.");
       setLoading(null);
     }
   }
@@ -97,6 +118,12 @@ export default function PricingPage() {
           }
         </div>
       </header>
+
+      {errorMsg && (
+        <div style={{ maxWidth: 700, margin: "20px auto 0", background: "#2a1414", border: "1px solid #5a2424", color: "#ff8080", padding: "14px 20px", borderRadius: 10, fontSize: 14, textAlign: "center" }}>
+          ⚠️ {errorMsg}
+        </div>
+      )}
 
       <div style={{ padding: "80px 32px 60px", maxWidth: 1100, margin: "0 auto" }}>
         <div style={{ textAlign: "center", marginBottom: 64 }}>
