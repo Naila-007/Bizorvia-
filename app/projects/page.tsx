@@ -4,12 +4,12 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 
-type Project = { id: string; name: string; framework: string; url: string; custom_domain?: string; status: string; last_deployed_at?: string; created_at: string; netlify_site_name: string; };
+type Project = { id: string; name: string; framework: string; url: string; slug: string; custom_domain?: string; status: string; last_deployed_at?: string; created_at: string; };
 type TabType = 'overview' | 'deploy' | 'env' | 'domain' | 'logs';
 
 const FW_ICONS: Record<string,string> = { html:'🌐', nextjs:'▲', react:'⚛️', vue:'💚', svelte:'🔥', astro:'🚀', nuxt:'💚', remix:'💿', static:'📄' };
 const FW_NAMES: Record<string,string> = { html:'HTML/CSS/JS', nextjs:'Next.js', react:'React', vue:'Vue.js', svelte:'SvelteKit', astro:'Astro', nuxt:'Nuxt', remix:'Remix', static:'Static Site' };
-const STATUS_COLORS: Record<string,string> = { created:'#555', deployed:'#d8ff72', error:'#ff4444', building:'#fb923c' };
+const STATUS_COLORS: Record<string,string> = { pending:'#555', created:'#555', deployed:'#d8ff72', partial:'#fb923c', error:'#ff4444', building:'#fb923c' };
 
 function fmt(s?:string){ if(!s) return 'Never'; return new Date(s).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric',hour:'2-digit',minute:'2-digit'}); }
 
@@ -161,7 +161,7 @@ export default function ProjectsPage() {
                   <span style={{fontSize:28}}>{FW_ICONS[p.framework]||'🌐'}</span>
                   <div style={{flex:1}}>
                     <div style={{fontWeight:700,fontSize:15,marginBottom:3}}>{p.name}</div>
-                    <div style={{color:'#555',fontSize:12}}>{FW_NAMES[p.framework]} · {p.url?<a href={p.url} target='_blank' onClick={e=>e.stopPropagation()} style={{color:'#d8ff72',textDecoration:'none'}}>{p.netlify_site_name}.netlify.app ↗</a>:'Not deployed'}</div>
+                    <div style={{color:'#555',fontSize:12}}>{FW_NAMES[p.framework]||p.framework} · {p.url&&p.status==='deployed'?<a href={p.url} target='_blank' onClick={e=>e.stopPropagation()} style={{color:'#d8ff72',textDecoration:'none'}}>{p.url.replace('https://','').slice(0,40)} ↗</a>:'Not yet deployed'}</div>
                   </div>
                   <div style={{textAlign:'right'}}>
                     <div style={{display:'inline-block',background:STATUS_COLORS[p.status]+'22',color:STATUS_COLORS[p.status],fontSize:10,fontWeight:700,padding:'3px 10px',borderRadius:20,marginBottom:3,textTransform:'uppercase'}}>{p.status}</div>
@@ -215,7 +215,7 @@ export default function ProjectsPage() {
             <span style={{fontSize:34}}>{FW_ICONS[selected.framework]||'🌐'}</span>
             <div>
               <h1 style={{fontSize:22,fontWeight:800,marginBottom:3}}>{selected.name}</h1>
-              {selected.url?<a href={selected.url} target='_blank' style={{color:'#d8ff72',fontSize:13,textDecoration:'none'}}>{selected.netlify_site_name}.netlify.app ↗</a>:<span style={{color:'#555',fontSize:13}}>Not yet deployed</span>}
+              {selected.url&&selected.status==='deployed'?<a href={selected.url} target='_blank' style={{color:'#d8ff72',fontSize:13,textDecoration:'none'}}>{selected.url.replace('https://','').slice(0,50)} ↗</a>:<span style={{color:'#555',fontSize:13}}>Not yet deployed — upload a ZIP to go live</span>}
             </div>
             <div style={{marginLeft:'auto',background:STATUS_COLORS[selected.status]+'22',color:STATUS_COLORS[selected.status],fontSize:11,fontWeight:700,padding:'5px 14px',borderRadius:20,textTransform:'uppercase'}}>{selected.status}</div>
           </div>
