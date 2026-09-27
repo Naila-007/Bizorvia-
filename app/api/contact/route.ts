@@ -1,8 +1,7 @@
+
 import { NextRequest, NextResponse } from 'next/server';
 import { Resend } from 'resend';
 import { createClient } from '@supabase/supabase-js';
-
-const resend = new Resend(process.env.RESEND_API_KEY);
 
 const ALLOWED_ORIGINS = [
   'https://bizorvia.com',
@@ -49,11 +48,13 @@ export async function POST(req: NextRequest) {
         });
       if (dbError) {
         console.error('[CONTACT] Supabase insert error:', dbError.message);
+        // Don't block the email — continue even if DB fails
       }
     }
 
     // 2. Send email via Resend
     if (process.env.RESEND_API_KEY) {
+      const resend = new Resend(process.env.RESEND_API_KEY);
       const { error: emailError } = await resend.emails.send({
         from: 'Bizorvia <hello@bizorvia.com>',
         to: ['hello@bizorvia.com'],
