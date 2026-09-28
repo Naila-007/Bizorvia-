@@ -683,6 +683,8 @@ export default function Home() {
   const [aiResult, setAiResult] = useState("");
   const [aiError, setAiError] = useState("");
   const [aiLoading, setAiLoading] = useState(false);
+  const [filesLoading, setFilesLoading] = useState(false);
+  const [lastPrompt, setLastPrompt] = useState("");
 
   useEffect(() => {
     if (!running || paused || step >= taskSteps.length - 1) return;
@@ -741,12 +743,76 @@ export default function Home() {
     setPaused(false);
     setRunning(true);
     setTab("Live run");
+    setLastPrompt(finalPrompt);
     runRealAI(finalPrompt);
   }
 
   function notify(message: string) {
     setToast(message);
     window.setTimeout(() => setToast(""), 2400);
+  }
+
+  function triggerDownload(filename: string, content: string, mime: string) {
+    const blob = new Blob([content], { type: mime });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
+  function downloadPlan() {
+    if (!user) {
+      notify("Sign in to download real files.");
+      return;
+    }
+    if (!aiResult) {
+      notify("Click Run first to generate real content, then download.");
+      return;
+    }
+    triggerDownload("business-plan.md", aiResult, "text/markdown");
+    notify("business-plan.md downloaded");
+  }
+
+  async function downloadAppDemo() {
+    if (!user) {
+      notify("Sign in to download real files.");
+      return;
+    }
+    if (!aiResult) {
+      notify("Click Run first to generate real content, then download.");
+      return;
+    }
+    setFilesLoading(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        notify("Sign in to download real files.");
+        return;
+      }
+      const res = await fetch("/api/generate-app", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify({ prompt: lastPrompt || prompt }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (res.ok && data.html) {
+        triggerDownload("app-demo.html", data.html, "text/html");
+        notify("app-demo.html downloaded");
+      } else {
+        notify(data.error || "The app demo couldn't be generated this time. Try again.");
+      }
+    } catch {
+      notify("Network error generating the app demo.");
+    } finally {
+      setFilesLoading(false);
+    }
   }
 
   return (
@@ -1207,11 +1273,12 @@ export default function Home() {
                     <h2>Deliverables</h2>
                     <p>Files appear here as the agent team creates them.</p>
                   </div>
-                  <button
-                    onClick={() => notify("All files prepared for download")}
-                  >
-                    Download all
-                  </button>
+                  <div style={{ display: "flex", gap: 8 }}>
+                    <button onClick={downloadPlan}>Download plan</button>
+                    <button onClick={downloadAppDemo} disabled={filesLoading}>
+                      {filesLoading ? "Generating…" : "Download app demo"}
+                    </button>
+                  </div>
                 </div>
                 <div className="file-grid">
                   {files.map((file) => (
