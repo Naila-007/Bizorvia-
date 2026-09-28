@@ -49,6 +49,12 @@ async function netFetch(provider: string, path: string, opts: RequestInit = {}) 
 
 // GET — provider status check
 export async function GET(req: NextRequest) {
+  const token = req.headers.get('authorization')?.replace('Bearer ', '');
+  if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  const supabase = getSupabase();
+  const { data: { user }, error } = await supabase.auth.getUser(token);
+  if (error || !user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
   const statuses = await Promise.all(
     Object.entries(PROVIDERS).map(async ([key, p]) => {
       const token = p.token();

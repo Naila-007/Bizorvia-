@@ -6,6 +6,7 @@ const FREE_LIMIT_BYTES = 500 * 1024 * 1024; // 500MB
 const FILE_MAX_BYTES   = 50 * 1024 * 1024;  // 50MB per file
 
 export async function POST(req: NextRequest) {
+  const supabase = getSupabase();
   const token = req.headers.get('authorization')?.replace('Bearer ', '');
   if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
@@ -23,7 +24,7 @@ export async function POST(req: NextRequest) {
 
   // Check total usage
   const { data: existing } = await supabase.storage.from('bizorvia-storage').list(folder, { limit: 200 });
-  const totalUsed = (existing || []).reduce((sum, f) => sum + (f.metadata?.size || 0), 0);
+  const totalUsed = (existing || []).reduce((sum: number, f: any) => sum + (f.metadata?.size || 0), 0);
   if (totalUsed + file.size > FREE_LIMIT_BYTES) {
     return NextResponse.json({ error: 'Storage full (500MB free limit reached)' }, { status: 413 });
   }

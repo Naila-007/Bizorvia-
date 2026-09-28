@@ -56,8 +56,8 @@ export default function ContactPage() {
             <span style={{ fontSize: 12, color: '#888', textTransform: 'uppercase', letterSpacing: 1 }}>Interested plan</span>
             <select value={form.plan} onChange={set('plan')} style={{ background: '#111', border: '1px solid #2a2a2a', borderRadius: 8, padding: '12px 14px', color: '#fff', fontSize: 14, outline: 'none' }}>
               <option value='builder'>Builder ($39/mo)</option>
-              <option value='business'>Business ($89/mo)</option>
-              <option value='scale'>Scale ($199/mo)</option>
+              <option value='business'>Business ($129/mo)</option>
+              <option value='scale'>Scale ($399/mo)</option>
               <option value='enterprise'>Enterprise (custom)</option>
             </select>
           </label>

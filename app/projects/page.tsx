@@ -135,14 +135,19 @@ export default function ProjectsPage() {
           <p style={{color:'#666',fontSize:14,marginBottom:32}}>Deploy and manage websites — free SSL, CDN, custom domains.</p>
 
           <div style={{background:'linear-gradient(135deg,#0d180d,#111)',border:'1px solid #1e3a1e',borderRadius:14,padding:22,marginBottom:30,display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:16}}>
-            {[{l:'Sites',u:projects.length,m:3},{l:'Bandwidth',u:0,m:100,unit:'GB'},{l:'Functions',u:0,m:10000,unit:'calls'},{l:'Storage',u:0,m:1,unit:'GB'}].map(s=>(
-              <div key={s.l}>
-                <div style={{fontSize:11,color:'#666',marginBottom:6}}>{s.l}</div>
-                <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:3}}>
-                  <div style={{flex:1,background:'#1a1a1a',borderRadius:99,height:5,overflow:'hidden'}}><div style={{background:'#d8ff72',width:`${Math.min(100,(s.u/s.m)*100)}%`,height:'100%',borderRadius:99}}/></div>
-                  <span style={{fontSize:10,color:'#555',whiteSpace:'nowrap'}}>{s.u}/{s.m}</span>
-                </div>
-                <div style={{fontSize:10,color:'#444'}}>{s.unit||''} free tier</div>
+            <div>
+              <div style={{fontSize:11,color:'#666',marginBottom:6}}>Sites</div>
+              <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:3}}>
+                <div style={{flex:1,background:'#1a1a1a',borderRadius:99,height:5,overflow:'hidden'}}><div style={{background:'#d8ff72',width:`${Math.min(100,(projects.length/3)*100)}%`,height:'100%',borderRadius:99}}/></div>
+                <span style={{fontSize:10,color:'#555',whiteSpace:'nowrap'}}>{projects.length}/3</span>
+              </div>
+              <div style={{fontSize:10,color:'#444'}}>free tier</div>
+            </div>
+            {['Bandwidth','Functions','Storage'].map(l=>(
+              <div key={l}>
+                <div style={{fontSize:11,color:'#666',marginBottom:6}}>{l}</div>
+                <div style={{fontSize:13,color:'#555',marginBottom:3}}>—</div>
+                <div style={{fontSize:10,color:'#444'}}>usage tracking coming soon</div>
               </div>
             ))}
           </div>
@@ -197,7 +202,7 @@ export default function ProjectsPage() {
               </div>
             </div>
             <div style={{background:'#0d180d',border:'1px solid #1e3a1e',borderRadius:10,padding:16}}>
-              {['Free HTTPS & SSL certificate','Global CDN (150+ PoPs)','Custom domain support','Serverless functions (10k/mo)','100GB bandwidth free','Instant rollbacks'].map(f=>(
+              {['Free HTTPS & SSL certificate','Static file hosting','Free bizorvia.com subdomain'].map(f=>(
                 <div key={f} style={{fontSize:12,color:'#7a9a7a',marginBottom:5}}>✓ {f}</div>
               ))}
             </div>
@@ -276,7 +281,7 @@ export default function ProjectsPage() {
             <div>
               <div style={{background:'#111',border:'1px solid #1a1a1a',borderRadius:14,padding:22,marginBottom:18}}>
                 <h3 style={{fontSize:15,fontWeight:700,marginBottom:6}}>Environment variables</h3>
-                <p style={{color:'#666',fontSize:12,marginBottom:18}}>Encrypted at rest. Available during build and in serverless functions.</p>
+                <p style={{color:'#666',fontSize:12,marginBottom:18}}>You can save these for later, but nothing reads them yet — sites deploy as static files with no build step or serverless functions today, so a saved variable isn't available to your live site.</p>
                 <form onSubmit={saveEnv} style={{display:'flex',gap:8}}>
                   <input required value={envKey} onChange={e=>setEnvKey(e.target.value)} placeholder='API_KEY' style={{flex:'1',background:'#1a1a1a',border:'1px solid #2a2a2a',borderRadius:8,padding:'10px 12px',color:'#d8ff72',fontFamily:'monospace',fontSize:12,outline:'none'}}/>
                   <input required value={envVal} onChange={e=>setEnvVal(e.target.value)} placeholder='value' type='password' style={{flex:'2',background:'#1a1a1a',border:'1px solid #2a2a2a',borderRadius:8,padding:'10px 12px',color:'#fff',fontSize:12,outline:'none'}}/>
@@ -300,25 +305,25 @@ export default function ProjectsPage() {
             <div>
               <div style={{background:'#111',border:'1px solid #1a1a1a',borderRadius:14,padding:22,marginBottom:18}}>
                 <h3 style={{fontSize:15,fontWeight:700,marginBottom:6}}>Custom domain</h3>
-                <p style={{color:'#666',fontSize:12,marginBottom:16}}>Free automatic HTTPS included. Point your domain's CNAME to your project.</p>
-                <div style={{background:'#0d180d',border:'1px solid #1e3a1e',borderRadius:10,padding:14,marginBottom:16,display:'grid',gridTemplateColumns:'1fr 1fr',gap:8}}>
-                  {['Free HTTPS / SSL','Global CDN','Wildcard subdomains','Instant propagation'].map(f=><div key={f} style={{fontSize:11,color:'#7a9a7a'}}>✓ {f}</div>)}
+                <p style={{color:'#666',fontSize:12,marginBottom:16}}>You can save a domain here now, but connecting it to actually serve your site isn't finished yet — treat this as a placeholder, not a working DNS setup.</p>
+                <div style={{background:'#1a1608',border:'1px solid #3a3018',borderRadius:10,padding:14,marginBottom:16}}>
+                  <div style={{fontSize:12,color:'#e0c060'}}>⚠️ Custom domains are on the roadmap. For now your site is only reachable at your bizorvia.com project URL — don't point real DNS here expecting it to work yet.</div>
                 </div>
                 <form onSubmit={saveDomain} style={{display:'flex',gap:8}}>
                   <input required value={domain} onChange={e=>setDomain(e.target.value)} placeholder='yourdomain.com' style={{flex:1,background:'#1a1a1a',border:'1px solid #2a2a2a',borderRadius:8,padding:'10px 12px',color:'#fff',fontSize:13,outline:'none'}}/>
-                  <button type='submit' disabled={savingDomain} style={{background:'#d8ff72',border:'none',color:'#0a0a0a',padding:'10px 20px',borderRadius:8,fontWeight:700,fontSize:13,cursor:'pointer'}}>{savingDomain?'…':'Connect →'}</button>
+                  <button type='submit' disabled={savingDomain} style={{background:'#d8ff72',border:'none',color:'#0a0a0a',padding:'10px 20px',borderRadius:8,fontWeight:700,fontSize:13,cursor:'pointer'}}>{savingDomain?'…':'Save →'}</button>
                 </form>
               </div>
               {dnsInfo&&(
                 <div style={{background:'#0d180d',border:'1px solid #1e3a1e',borderRadius:14,padding:22}}>
-                  <div style={{fontWeight:700,marginBottom:14,color:'#d8ff72',fontSize:14}}>✓ Add this DNS record at your registrar:</div>
+                  <div style={{fontWeight:700,marginBottom:14,color:'#d8ff72',fontSize:14}}>Saved. For reference, here's what a DNS record would look like — but it won't route traffic yet:</div>
                   <div style={{background:'#111',borderRadius:10,padding:16,fontFamily:'monospace',fontSize:12,display:'grid',gridTemplateColumns:'70px 1fr',rowGap:8}}>
                     <span style={{color:'#555'}}>Type</span><span style={{color:'#fff'}}>CNAME</span>
                     <span style={{color:'#555'}}>Host</span><span style={{color:'#d8ff72'}}>{dnsInfo.host||domain}</span>
                     <span style={{color:'#555'}}>Value</span><span style={{color:'#d8ff72'}}>{dnsInfo.value}</span>
                     <span style={{color:'#555'}}>TTL</span><span style={{color:'#fff'}}>Auto / 3600</span>
                   </div>
-                  <p style={{color:'#555',fontSize:11,marginTop:10}}>SSL activates within minutes of DNS propagation.</p>
+                  <p style={{color:'#555',fontSize:11,marginTop:10}}>We'll let you know here once custom domains actually go live.</p>
                 </div>
               )}
             </div>
@@ -335,12 +340,10 @@ export default function ProjectsPage() {
                 :deploys.slice(0,1).map((d:any)=>(
                   <div key={d.id}>
                     <div style={{color:'#555'}}>[{new Date(d.created_at).toLocaleString()}] Deploy started</div>
-                    <div style={{color:'#7ec87e'}}>→ Preparing build environment</div>
-                    <div style={{color:'#7ec87e'}}>→ Installing dependencies</div>
-                    <div style={{color:'#7ec87e'}}>→ Building site artifacts</div>
-                    <div style={{color:'#7ec87e'}}>→ Uploading to global CDN (150+ PoPs)</div>
-                    <div style={{color:'#7ec87e'}}>→ Provisioning SSL certificate</div>
-                    <div style={{color:d.state==='ready'?'#d8ff72':'#ff4444',fontWeight:700}}>{d.state==='ready'?'✓ Deploy live — '+d.ssl_url:'✗ Deploy failed: '+d.error_message}</div>
+                    <div style={{color:'#7ec87e'}}>→ Unzipping uploaded files</div>
+                    <div style={{color:'#7ec87e'}}>→ Uploading {d.file_count ?? 0} file{d.file_count===1?'':'s'} to storage</div>
+                    <div style={{color:'#7ec87e'}}>→ Publishing at your project URL</div>
+                    <div style={{color:d.state==='ready'?'#d8ff72':'#ff4444',fontWeight:700}}>{d.state==='ready'?'✓ Deploy live — '+d.ssl_url:'✗ Deploy failed: '+(d.error_message||'some files did not upload')}</div>
                   </div>
                 ))}
               </div>

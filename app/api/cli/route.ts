@@ -13,6 +13,7 @@ function sanitize(input: string): string {
 }
 
 export async function POST(req: NextRequest) {
+  const supabase = getSupabase();
   const ua = req.headers.get('user-agent') || '';
   const isCliAgent = ua.startsWith('bizorvia-cli/');
 

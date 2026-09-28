@@ -6,6 +6,7 @@ const FREE_LIMIT_BYTES = 500 * 1024 * 1024; // 500MB free
 
 // GET — list user's files
 export async function GET(req: NextRequest) {
+  const supabase = getSupabase();
   const token = req.headers.get('authorization')?.replace('Bearer ', '');
   if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
@@ -20,8 +21,8 @@ export async function GET(req: NextRequest) {
   if (listErr) return NextResponse.json({ files: [], totalBytes: 0 });
 
   const safeFiles = (files || [])
-    .filter(f => f.name !== '.emptyFolderPlaceholder')
-    .map(f => ({
+    .filter((f: any) => f.name !== '.emptyFolderPlaceholder')
+    .map((f: any) => ({
       name: f.name,
       size: f.metadata?.size || 0,
       type: f.metadata?.mimetype || 'application/octet-stream',
@@ -29,13 +30,14 @@ export async function GET(req: NextRequest) {
       path: `${folder}${f.name}`,
     }));
 
-  const totalBytes = safeFiles.reduce((sum, f) => sum + f.size, 0);
+  const totalBytes = safeFiles.reduce((sum: number, f: any) => sum + f.size, 0);
 
   return NextResponse.json({ files: safeFiles, totalBytes, limitBytes: FREE_LIMIT_BYTES });
 }
 
 // DELETE — delete a file
 export async function DELETE(req: NextRequest) {
+  const supabase = getSupabase();
   const token = req.headers.get('authorization')?.replace('Bearer ', '');
   if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 

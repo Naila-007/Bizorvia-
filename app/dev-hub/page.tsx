@@ -49,7 +49,7 @@ export default function DevHubPage() {
   const [showNew, setShowNew] = useState(false);
   const [newName, setNewName] = useState('');
   const [newFw, setNewFw] = useState('html');
-  const [newProvider, setNewProvider] = useState('netlify');
+  const [newProvider, setNewProvider] = useState('bizorvia');
   const [creating, setCreating] = useState(false);
 
   useEffect(() => { if (!loading && !user) router.push('/login'); }, [loading, user]);
@@ -134,23 +134,22 @@ export default function DevHubPage() {
 
               <label style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                 <span style={{ fontSize: 11, color: '#888', textTransform: 'uppercase', letterSpacing: 1 }}>Deploy to</span>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 8 }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 8 }}>
                   {[
-                    { key: 'netlify', label: 'Netlify', icon: '◈', color: '#00ad9f', note: 'Connected' },
-                    { key: 'vercel', label: 'Vercel', icon: '▲', color: '#fff', note: 'Add token' },
-                    { key: 'cloudflare', label: 'Cloudflare', icon: '⬡', color: '#f48120', note: 'Add token' },
-                  ].map(opt => {
-                    const isConnected = providers.find(p => p.provider === opt.key)?.connected;
-                    return (
-                      <button type='button' key={opt.key} onClick={() => setNewProvider(opt.key)}
-                        style={{ background: newProvider === opt.key ? opt.color+'22' : '#1a1a1a', border: `1px solid ${newProvider === opt.key ? opt.color : '#2a2a2a'}`, borderRadius: 10, padding: '12px 8px', cursor: 'pointer', textAlign: 'center' }}>
-                        <div style={{ fontSize: 20, color: opt.color, marginBottom: 4 }}>{opt.icon}</div>
-                        <div style={{ fontSize: 12, fontWeight: 700, color: newProvider === opt.key ? opt.color : '#888' }}>{opt.label}</div>
-                        <div style={{ fontSize: 10, color: isConnected ? '#d8ff72' : '#555', marginTop: 2 }}>{isConnected ? '✓ Live' : opt.note}</div>
-                      </button>
-                    );
-                  })}
+                    { key: 'bizorvia', label: 'Bizorvia', icon: '⚡', color: '#d8ff72', note: 'Live now', disabled: false },
+                    { key: 'netlify', label: 'Netlify', icon: '◈', color: '#00ad9f', note: 'Coming soon', disabled: true },
+                    { key: 'vercel', label: 'Vercel', icon: '▲', color: '#fff', note: 'Coming soon', disabled: true },
+                    { key: 'cloudflare', label: 'Cloudflare', icon: '⬡', color: '#f48120', note: 'Coming soon', disabled: true },
+                  ].map(opt => (
+                    <button type='button' key={opt.key} disabled={opt.disabled} onClick={() => !opt.disabled && setNewProvider(opt.key)}
+                      style={{ background: newProvider === opt.key ? opt.color+'22' : '#1a1a1a', border: `1px solid ${newProvider === opt.key ? opt.color : '#2a2a2a'}`, borderRadius: 10, padding: '12px 8px', cursor: opt.disabled ? 'not-allowed' : 'pointer', textAlign: 'center', opacity: opt.disabled ? 0.45 : 1 }}>
+                      <div style={{ fontSize: 20, color: opt.color, marginBottom: 4 }}>{opt.icon}</div>
+                      <div style={{ fontSize: 12, fontWeight: 700, color: newProvider === opt.key ? opt.color : '#888' }}>{opt.label}</div>
+                      <div style={{ fontSize: 10, color: opt.disabled ? '#555' : '#d8ff72', marginTop: 2 }}>{opt.note}</div>
+                    </button>
+                  ))}
                 </div>
+                <span style={{ fontSize: 11, color: '#555', marginTop: 2 }}>Every project deploys to Bizorvia's own free hosting today — direct Netlify, Vercel, and Cloudflare deploys are on the roadmap.</span>
               </label>
 
               <label style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
@@ -169,7 +168,7 @@ export default function DevHubPage() {
               </div>
 
               <button type='submit' disabled={creating} style={{ background: '#d8ff72', border: 'none', color: '#0a0a0a', padding: 13, borderRadius: 10, fontWeight: 800, fontSize: 15, cursor: 'pointer' }}>
-                {creating ? 'Creating…' : `Deploy to ${newProvider} →`}
+                {creating ? 'Creating…' : 'Deploy to Bizorvia →'}
               </button>
             </form>
           </div>

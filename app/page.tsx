@@ -223,42 +223,42 @@ const launchSystems = [
     title: "Launch Passport",
     tag: "Release proof",
     copy: "One signed record for tests, accessibility, performance, licenses, data flows, security, billing, domains, backups, and approvals.",
-    metric: "42 / 47 checks",
+    metric: "Planned",
   },
   {
     icon: "$",
     title: "Profit Autopilot",
     tag: "Margin protection",
     copy: "Measures cost per user and task, routes models by price and quality, applies spending caps, and warns before a customer becomes unprofitable.",
-    metric: "74% margin",
+    metric: "Planned",
   },
   {
     icon: "§",
     title: "Trust Compiler",
     tag: "Policy as code",
     copy: "Turns product data flows into privacy notices, consent requirements, retention rules, subprocessors, and an auditable control map.",
-    metric: "3 drifts found",
+    metric: "Planned",
   },
   {
     icon: "↶",
     title: "Mission Replay",
     tag: "Explain + recover",
     copy: "Replays every agent decision, approval, tool call, data change, and deployment—then safely rolls back the affected action.",
-    metric: "126 actions",
+    metric: "Planned",
   },
   {
     icon: "⇄",
     title: "Sovereign Exit",
     tag: "No lock-in",
     copy: "Exports source, Postgres data, files, secrets manifest, DNS records, billing catalog, logs, and deployment instructions as a portable exit package.",
-    metric: "Ready to export",
+    metric: "Planned",
   },
   {
     icon: "◈",
     title: "Resilience Mesh",
     tag: "Provider failover",
     copy: "Keeps tested recovery plans for models, regions, email, storage, DNS, and payments so one provider cannot stop the business.",
-    metric: "2 recovery paths",
+    metric: "Planned",
   },
 ];
 
@@ -370,57 +370,57 @@ const marketingSystems = [
     title: "SEO",
     icon: "◎",
     copy: "Technical audits, keyword research, site architecture, schema, internal links, local SEO, content clusters, indexing, and backlink opportunities.",
-    score: "92",
-    status: "18 opportunities",
+    score: "—",
+    status: "Not started",
   },
   {
     title: "AEO",
     icon: "?",
     copy: "Direct-answer pages, FAQs, featured-snippet structures, voice-search answers, comparison tables, definitions, and structured question coverage.",
-    score: "86",
-    status: "24 answers ready",
+    score: "—",
+    status: "Not started",
   },
   {
     title: "GEO",
     icon: "✦",
     copy: "Clear entities, evidence-backed claims, original insights, expert authorship, citation-worthy pages, consistent brand facts, and answer-engine visibility monitoring.",
-    score: "78",
-    status: "9 citation gaps",
+    score: "—",
+    status: "Not started",
   },
   {
     title: "Content",
     icon: "▤",
     copy: "A multilingual calendar for articles, landing pages, lead magnets, product stories, short videos, images, podcasts, and repurposed campaigns.",
-    score: "88",
-    status: "30 days planned",
+    score: "—",
+    status: "Not started",
   },
   {
     title: "Social",
     icon: "↗",
     copy: "Platform-specific creation, scheduling, community replies, social listening, UGC briefs, influencer outreach, and performance learning.",
-    score: "84",
-    status: "42 posts queued",
+    score: "—",
+    status: "Not started",
   },
   {
     title: "Email + CRM",
     icon: "✉",
     copy: "Lead capture, segmentation, welcome and sales sequences, newsletters, abandoned checkout, win-back, scoring, and sales follow-up.",
-    score: "91",
-    status: "7 flows active",
+    score: "—",
+    status: "Not started",
   },
   {
     title: "Paid ads",
     icon: "$",
     copy: "Creative variations, audiences, budgets, pixels, conversion APIs, landing pages, experiments, retargeting, and strict spend approvals.",
-    score: "73",
-    status: "Approval required",
+    score: "—",
+    status: "Not started",
   },
   {
     title: "Reputation",
     icon: "★",
     copy: "Review requests, listing consistency, response drafts, customer stories, PR opportunities, partnerships, affiliates, and referral programs.",
-    score: "81",
-    status: "6 actions",
+    score: "—",
+    status: "Not started",
   },
 ];
 
@@ -1418,11 +1418,14 @@ function PlatformView({
     "A subscription studio that helps Etsy sellers create and market digital products",
   );
   const [marketingSystem, setMarketingSystem] = useState(0);
-  const [agentMode, setAgentMode] = useState(true);
   const [code, setCode] = useState(
     `export async function launchBusiness(idea: string) {\n  const market = await agents.validate(idea);\n  const offer = await agents.designOffer(market);\n  const business = await factory.build({ market, offer });\n\n  await approvals.request({\n    actions: ["publish", "connectDomain", "enablePayments"]\n  });\n\n  return business.launch();\n}`,
   );
   const [workSurface, setWorkSurface] = useState(1);
+  const [agentPrompt, setAgentPrompt] = useState("");
+  const [agentResponse, setAgentResponse] = useState("");
+  const [agentError, setAgentError] = useState("");
+  const [agentRunning, setAgentRunning] = useState(false);
   const { user } = useAuth();
 
   type RealProject = {
@@ -1440,7 +1443,7 @@ function PlatformView({
   const [portalLoading, setPortalLoading] = useState(false);
   const [portalError, setPortalError] = useState("");
 
-  const needsRealData = section === "Deploy" || section === "Database" || section === "Payments";
+  const needsRealData = section === "Deploy" || section === "Database" || section === "Payments" || section === "Hosting" || section === "Studio";
 
   useEffect(() => {
     if (!needsRealData || !user) return;
@@ -1495,6 +1498,102 @@ function PlatformView({
       setPortalError("Network error opening billing portal.");
     } finally {
       setPortalLoading(false);
+    }
+  }
+
+  const [businessType, setBusinessType] = useState("Digital products");
+  const [factoryResult, setFactoryResult] = useState("");
+  const [factoryError, setFactoryError] = useState("");
+  const [factoryLoading, setFactoryLoading] = useState(false);
+
+  function triggerDownload(filename: string, content: string, mime: string) {
+    const blob = new Blob([content], { type: mime });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
+  async function runAgent() {
+    setAgentError("");
+    if (!agentPrompt.trim()) {
+      setAgentError("Type an instruction first.");
+      return;
+    }
+    if (!user) {
+      setAgentError("Sign in to use the real code agent — this preview is scripted until then.");
+      return;
+    }
+    setAgentRunning(true);
+    setAgentResponse("");
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        setAgentError("Sign in to use the real code agent — this preview is scripted until then.");
+        return;
+      }
+      const res = await fetch("/api/ai", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${session.access_token}` },
+        body: JSON.stringify({
+          prompt: `You are a coding assistant working on this file:\n\n${code}\n\nInstruction: ${agentPrompt}\n\nReply with a short explanation (2-3 sentences) of what you changed, followed by the complete updated code in a single fenced code block.`,
+        }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (res.ok && data.result) {
+        setAgentResponse(data.result);
+        const match = data.result.match(/```[a-zA-Z]*\n([\s\S]*?)```/);
+        if (match) setCode(match[1].trim());
+      } else {
+        setAgentError(data.error || "AI isn't configured on this deployment yet.");
+      }
+    } catch {
+      setAgentError("Network error reaching the AI service.");
+    } finally {
+      setAgentRunning(false);
+    }
+  }
+
+  async function buildBusiness() {
+    setFactoryResult("");
+    setFactoryError("");
+    if (!businessIdea.trim()) {
+      setFactoryError("Describe your business idea above first.");
+      return;
+    }
+    if (!user) {
+      setFactoryError("Sign in to generate a real business validation — this preview is scripted until then.");
+      return;
+    }
+    setFactoryStep(0);
+    setFactoryLoading(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        setFactoryError("Sign in to generate a real business validation — this preview is scripted until then.");
+        return;
+      }
+      const res = await fetch("/api/ai", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${session.access_token}` },
+        body: JSON.stringify({
+          prompt: `You are validating a new business idea for a founder. Business type: ${businessType}. Idea: "${businessIdea}". Give a real, concise validation (under 220 words) with short headers covering: 1) Opportunity — is there real demand for this?, 2) Ideal customer, 3) A suggested starting price, and 4) Three concrete next steps to launch.`,
+        }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (res.ok && data.result) {
+        setFactoryResult(data.result);
+      } else {
+        setFactoryError(data.error || "AI isn't configured on this deployment yet — showing the scripted preview instead.");
+      }
+    } catch {
+      setFactoryError("Network error reaching the AI service — showing the scripted preview instead.");
+    } finally {
+      setFactoryLoading(false);
     }
   }
 
@@ -1587,11 +1686,13 @@ function PlatformView({
         <div className="everywhere-workspace">
           <div className="everywhere-hero">
             <div>
-              <span>ONE CONTEXT · EVERY SURFACE</span>
+              <span>ONE CONTEXT · EVERY SURFACE · VISION</span>
               <h2>Start in Slack. Continue in code. Approve on mobile.</h2>
               <p>
-                The agent always knows the project, current task, permissions,
-                decisions, and evidence—without losing context between tools.
+                This is the vision: an agent that keeps the project, current
+                task, permissions, decisions, and evidence in sync across every
+                tool. None of the connections below exist yet — what follows is
+                a mockup of how it will work.
               </p>
             </div>
             <div className="context-orbit">
@@ -1600,10 +1701,10 @@ function PlatformView({
               <i />
               <i />
               <i />
-              <em>Shared context live</em>
+              <em style={{ opacity: 0.6 }}>Not connected yet</em>
             </div>
-            <button onClick={() => notify("Connector catalog opened")}>
-              ＋ Connect a tool
+            <button disabled style={{ opacity: 0.5, cursor: "not-allowed" }}>
+              ＋ Coming soon
             </button>
           </div>
           <div className="surface-layout">
@@ -1632,12 +1733,13 @@ function PlatformView({
                     <small>{workSurfaces[workSurface].status}</small>
                   </div>
                 </div>
-                <em>
-                  <i /> Connected
+                <em style={{ opacity: 0.6 }}>
+                  <i style={{ background: "#666" }} /> Not connected yet
                 </em>
               </div>
               <h2>Bizorvia inside {workSurfaces[workSurface].title}</h2>
               <p>{workSurfaces[workSurface].copy}</p>
+              <p style={{ color: "#666", fontSize: 12 }}>Example mockup — not a live conversation:</p>
               <div className="surface-conversation">
                 <div className="surface-message">
                   <span>NN</span>
@@ -1659,10 +1761,8 @@ function PlatformView({
                       <span>✓ Checkout verified</span>
                       <span>! Consent change needs approval</span>
                     </div>
-                    <button
-                      onClick={() => notify("Cross-tool activity opened")}
-                    >
-                      Review work across tools →
+                    <button disabled style={{ opacity: 0.5, cursor: "not-allowed" }}>
+                      Coming soon
                     </button>
                   </div>
                 </div>
@@ -1670,7 +1770,7 @@ function PlatformView({
               <div className="surface-handoff">
                 <span>CONTINUE THIS WORK IN</span>
                 {["Terminal", "GitHub", "Browser", "Mobile"].map((x) => (
-                  <button key={x} onClick={() => notify(`Task handed to ${x}`)}>
+                  <button key={x} disabled style={{ opacity: 0.5, cursor: "not-allowed" }}>
                     {x} ↗
                   </button>
                 ))}
@@ -1678,9 +1778,9 @@ function PlatformView({
             </section>
             <aside className="permission-center">
               <div>
-                <span>PERMISSION PROFILE</span>
+                <span>PERMISSION PROFILE · PREVIEW</span>
                 <b>Business operator</b>
-                <small>Applies in every connected tool</small>
+                <small>Not enforced anywhere yet</small>
               </div>
               {[
                 ["Read project context", true],
@@ -1692,22 +1792,22 @@ function PlatformView({
               ].map((x) => (
                 <label key={String(x[0])}>
                   <span>{x[0]}</span>
-                  <input type="checkbox" defaultChecked={Boolean(x[1])} />
+                  <input type="checkbox" defaultChecked={Boolean(x[1])} disabled />
                   <i />
                 </label>
               ))}
-              <button onClick={() => notify("Permission manager opened")}>
-                Manage permissions
+              <button disabled style={{ opacity: 0.5, cursor: "not-allowed" }}>
+                Coming soon
               </button>
             </aside>
           </div>
           <div className="event-mesh">
             <div className="event-head">
               <div>
-                <span>EVENT MESH</span>
+                <span>EVENT MESH · VISION</span>
                 <b>Work begins wherever business happens.</b>
               </div>
-              <em>18 automations active</em>
+              <em style={{ opacity: 0.6 }}>Not automated yet</em>
             </div>
             <div className="event-flow">
               {[
@@ -1744,34 +1844,34 @@ function PlatformView({
           </div>
           <div className="cross-tool-feed">
             <div>
-              <b>Recent cross-tool work</b>
-              <button onClick={() => notify("Complete audit trail opened")}>
-                View audit trail
+              <b>Example cross-tool work</b>
+              <button disabled style={{ opacity: 0.5, cursor: "not-allowed" }}>
+                Coming soon
               </button>
             </div>
             {[
               [
                 "GitHub",
                 "Reviewed PR #184 and suggested 6 fixes",
-                "2 min ago",
+                "Example",
                 "Review",
               ],
               [
                 "Slack",
                 "Converted launch thread into an approved 12-step plan",
-                "8 min ago",
+                "Example",
                 "Open",
               ],
               [
                 "Terminal",
                 "Reproduced checkout error and repaired failing tests",
-                "14 min ago",
+                "Example",
                 "View logs",
               ],
               [
                 "Support",
                 "Linked three tickets to one product defect",
-                "26 min ago",
+                "Example",
                 "Open issue",
               ],
             ].map((x) => (
@@ -1782,7 +1882,7 @@ function PlatformView({
                   <p>{x[1]}</p>
                 </div>
                 <em>{x[2]}</em>
-                <button onClick={() => notify(`${x[0]} activity opened`)}>
+                <button disabled style={{ opacity: 0.5, cursor: "not-allowed" }}>
                   {x[3]} ↗
                 </button>
               </article>
@@ -1798,15 +1898,17 @@ function PlatformView({
               <em>main</em>
             </div>
             <div className="ide-actions">
-              <button onClick={() => notify("Command palette opened")}>
-                ⌘ Command
+              <button disabled style={{ opacity: 0.5, cursor: "not-allowed" }}>
+                ⌘ Coming soon
               </button>
-              <button onClick={() => notify("Live preview opened")}>
-                ▷ Preview
+              <button disabled style={{ opacity: 0.5, cursor: "not-allowed" }}>
+                ▷ Coming soon
               </button>
               <button
                 className="ide-primary"
-                onClick={() => notify("Review and deploy opened")}
+                disabled
+                style={{ opacity: 0.5, cursor: "not-allowed" }}
+                title="Deploying is available today from the Projects page"
               >
                 Ship changes
               </button>
@@ -1870,82 +1972,60 @@ function PlatformView({
                     PROBLEMS <i>0</i>
                   </span>
                   <span>OUTPUT</span>
-                  <button onClick={() => notify("Terminal expanded")}>⌃</button>
                 </div>
-                <p>
-                  <i>$</i> npm test <em>✓ 18 tests passed in 2.4s</em>
-                </p>
-                <p>
-                  <i>$</i> bizorvia preview <em>✓ ready at secure preview</em>
-                </p>
+                {agentRunning ? (
+                  <p>
+                    <i>$</i> ai-agent <em>running…</em>
+                  </p>
+                ) : agentResponse ? (
+                  <p>
+                    <i>$</i> ai-agent <em>✓ response received, editor updated</em>
+                  </p>
+                ) : (
+                  <p>
+                    <i>$</i> <em style={{ color: "#666" }}>No commands run yet — ask the agent something below</em>
+                  </p>
+                )}
               </div>
             </section>
             <aside className="agent-panel">
               <div className="agent-panel-head">
                 <div>
                   <span>✦</span>
-                  <b>Autonomous Agent</b>
+                  <b>AI Code Assistant</b>
                 </div>
-                <label>
-                  <input
-                    type="checkbox"
-                    checked={agentMode}
-                    onChange={(e) => setAgentMode(e.target.checked)}
-                  />
-                  <i />
-                </label>
               </div>
               <div className="agent-status">
                 <span>
-                  <i /> {agentMode ? "Agent mode active" : "Ask mode active"}
+                  <i /> {user ? "Real AI · connected" : "Sign in for real AI"}
                 </span>
-                <small>Full repository context · 126 files</small>
+                <small>Edits the code shown in the editor</small>
               </div>
-              <div className="agent-request">
-                <p>
-                  Add the complete Idea-to-Income workflow and connect SEO, AEO,
-                  GEO, email, CRM, and approval controls.
-                </p>
-                <small>Working across 8 files</small>
-              </div>
-              <div className="agent-plan">
-                {[
-                  ["✓", "Analyzed architecture", "Complete"],
-                  ["✓", "Created business pipeline", "Complete"],
-                  ["↻", "Connecting marketing agents", "Editing"],
-                  ["4", "Run tests and repair", "Queued"],
-                  ["5", "Present reviewable diff", "Queued"],
-                ].map((x, i) => (
-                  <article
-                    key={x[1]}
-                    className={i < 2 ? "done" : i === 2 ? "current" : ""}
-                  >
-                    <span>{x[0]}</span>
-                    <div>
-                      <b>{x[1]}</b>
-                      <small>{x[2]}</small>
-                    </div>
-                  </article>
-                ))}
-              </div>
-              <div className="agent-changes">
-                <span>PROPOSED CHANGES</span>
-                <div>
-                  <b>8 files changed</b>
-                  <em>+428 −36</em>
+              {agentError && (
+                <p style={{ color: "#ff8080", fontSize: 13, padding: "0 4px" }}>⚠️ {agentError}</p>
+              )}
+              {agentRunning ? (
+                <div className="agent-request">
+                  <p>Thinking through your instruction…</p>
                 </div>
-                <button onClick={() => notify("Code diff opened")}>
-                  Review diff
-                </button>
-              </div>
+              ) : agentResponse ? (
+                <div className="agent-request" style={{ whiteSpace: "pre-wrap", maxHeight: 260, overflow: "auto" }}>
+                  <p style={{ fontSize: 13 }}>{agentResponse}</p>
+                </div>
+              ) : (
+                <div className="agent-request">
+                  <p>Ask it to build, fix, explain, or refactor the code in the editor — it will write a real response and can update the code directly.</p>
+                </div>
+              )}
               <div className="agent-prompt">
-                <textarea placeholder="Ask the agent to build, fix, explain, or test…" />
+                <textarea
+                  placeholder="Ask the agent to build, fix, explain, or test…"
+                  value={agentPrompt}
+                  onChange={(e) => setAgentPrompt(e.target.value)}
+                />
                 <div>
-                  <button onClick={() => notify("Repository context attached")}>
-                    ＋ Context
-                  </button>
-                  <button onClick={() => notify("Agent instruction sent")}>
-                    Send ↑
+                  <button onClick={runAgent} disabled={agentRunning}>
+                    {agentRunning ? "Sending…" : "Send ↑"}
                   </button>
                 </div>
               </div>
@@ -1988,22 +2068,23 @@ function PlatformView({
         <div className="marketing-workspace">
           <div className="visibility-hero">
             <div>
-              <span>CONNECTED DISCOVERY ENGINE</span>
+              <span>GROWTH ENGINE · ROADMAP PREVIEW</span>
               <h2>
                 One strategy across search, answers, models, social, email, and ads.
               </h2>
               <p>
-                Bizorvia creates the foundation with every business, then
-                continuously watches visibility, leads, conversion, revenue, and
-                customer acquisition cost.
+                This is the plan: one system that watches visibility, leads,
+                conversion, revenue, and customer acquisition cost across every
+                channel. It isn't tracking real data yet — what's shown below
+                is an example of what it will look like.
               </p>
             </div>
             <div className="visibility-score">
-              <span>86</span>
-              <small>VISIBILITY</small>
+              <span>—</span>
+              <small>NOT TRACKED YET</small>
             </div>
-            <button onClick={() => notify("90-day growth plan generated")}>
-              Generate 90-day plan
+            <button disabled style={{ opacity: 0.5, cursor: "not-allowed" }}>
+              Coming soon
             </button>
           </div>
           <div className="marketing-layout">
@@ -2032,61 +2113,51 @@ function PlatformView({
                   </span>
                   <h2>{marketingSystems[marketingSystem].title}</h2>
                 </div>
-                <em>
-                  <i /> Monitoring live
+                <em style={{ opacity: 0.6 }}>
+                  <i style={{ background: "#666" }} /> Not automated yet
                 </em>
               </div>
               <p>{marketingSystems[marketingSystem].copy}</p>
               <div className="marketing-kpis">
-                {[
-                  ["Visibility", "+18%"],
-                  ["Qualified traffic", "8.4k"],
-                  ["Leads", "284"],
-                  ["Attributed revenue", "$12.8k"],
-                ].map((x) => (
-                  <article key={x[0]}>
-                    <span>{x[0]}</span>
-                    <b>{x[1]}</b>
-                    <small>Last 30 days</small>
+                {["Visibility", "Qualified traffic", "Leads", "Attributed revenue"].map((label) => (
+                  <article key={label}>
+                    <span>{label}</span>
+                    <b>—</b>
+                    <small>Not tracked yet</small>
                   </article>
                 ))}
               </div>
+              <p style={{ color: "#666", fontSize: 12, marginBottom: 12 }}>Example of the kind of next actions this system will surface once it's live:</p>
               <div className="next-actions">
                 <div>
                   <span>01</span>
                   <p>Publish the highest-opportunity content cluster</p>
-                  <em>Owner approval</em>
+                  <em>Example</em>
                 </div>
                 <div>
                   <span>02</span>
                   <p>Improve answer coverage on five purchase-intent pages</p>
-                  <em>Ready</em>
+                  <em>Example</em>
                 </div>
                 <div>
                   <span>03</span>
                   <p>Add original data and expert citations for answer-engine discovery</p>
-                  <em>In progress</em>
+                  <em>Example</em>
                 </div>
               </div>
-              <button
-                onClick={() =>
-                  notify(
-                    `${marketingSystems[marketingSystem].title} workspace opened`,
-                  )
-                }
-              >
-                Open full workspace →
+              <button disabled style={{ opacity: 0.5, cursor: "not-allowed" }}>
+                Coming soon
               </button>
             </section>
           </div>
           <div className="campaign-center">
             <div className="campaign-head">
               <div>
-                <span>OMNICHANNEL CAMPAIGN CENTER</span>
+                <span>OMNICHANNEL CAMPAIGN CENTER · ROADMAP PREVIEW</span>
                 <b>Launch once. Adapt everywhere.</b>
               </div>
-              <button onClick={() => notify("New campaign builder opened")}>
-                ＋ New campaign
+              <button disabled style={{ opacity: 0.5, cursor: "not-allowed" }}>
+                ＋ Coming soon
               </button>
             </div>
             <div className="campaign-flow">
@@ -2153,12 +2224,13 @@ function PlatformView({
                 onChange={(e) => setBusinessIdea(e.target.value)}
                 aria-label="Business idea"
               />
-              <button
-                onClick={() => notify("Business Factory mission started")}
-              >
-                Build my business <span>→</span>
+              <button onClick={buildBusiness} disabled={factoryLoading}>
+                {factoryLoading ? "Validating…" : "Build my business"} <span>→</span>
               </button>
             </div>
+            {factoryError && (
+              <p style={{ color: "#ff8080", fontSize: 13, marginTop: 4 }}>⚠️ {factoryError}</p>
+            )}
             <div className="factory-types">
               {[
                 "Digital products",
@@ -2167,11 +2239,11 @@ function PlatformView({
                 "Online store",
                 "Marketplace",
                 "Creator brand",
-              ].map((type, i) => (
+              ].map((type) => (
                 <button
                   key={type}
-                  className={i === 0 ? "active" : ""}
-                  onClick={() => notify(`${type} model selected`)}
+                  className={businessType === type ? "active" : ""}
+                  onClick={() => setBusinessType(type)}
                 >
                   {type}
                 </button>
@@ -2183,11 +2255,11 @@ function PlatformView({
               <button
                 key={item.title}
                 className={
-                  factoryStep === i ? "active" : i < 3 ? "complete" : ""
+                  factoryStep === i ? "active" : i === 0 && factoryResult ? "complete" : ""
                 }
                 onClick={() => setFactoryStep(i)}
               >
-                <span>{i < 3 ? "✓" : item.icon}</span>
+                <span>{i === 0 && factoryResult ? "✓" : item.icon}</span>
                 <small>0{i + 1}</small>
                 <b>{item.title}</b>
               </button>
@@ -2198,94 +2270,100 @@ function PlatformView({
               <div className="factory-detail-head">
                 <div>
                   <span>
-                    STAGE {String(factoryStep + 1).padStart(2, "0")} · AUTOMATED
-                    WORKFLOW
+                    STAGE {String(factoryStep + 1).padStart(2, "0")}
+                    {factoryStep === 0 ? " · REAL AI VALIDATION" : " · ON THE ROADMAP"}
                   </span>
                   <h2>{businessFactorySteps[factoryStep].title}</h2>
                 </div>
-                <em>{factoryStep < 3 ? "Complete" : "Ready to run"}</em>
+                <em>
+                  {factoryStep === 0
+                    ? factoryResult
+                      ? "Complete"
+                      : factoryLoading
+                        ? "Running…"
+                        : "Not started"
+                    : "Not automated yet"}
+                </em>
               </div>
               <p>{businessFactorySteps[factoryStep].copy}</p>
-              <div className="factory-outputs">
-                {businessFactorySteps[factoryStep].outputs.map((output, i) => (
-                  <article key={output}>
-                    <span>{["◎", "◇", "▦", "✓"][i]}</span>
-                    <div>
-                      <b>{output}</b>
-                      <small>
-                        {factoryStep < 3
-                          ? "Created and verified"
-                          : "Generated during this stage"}
-                      </small>
-                    </div>
-                    <i>{factoryStep < 3 ? "View" : "Planned"}</i>
-                  </article>
-                ))}
-              </div>
-              <button
-                onClick={() =>
-                  notify(
-                    `${businessFactorySteps[factoryStep].title} workflow opened`,
-                  )
-                }
-              >
-                Open workflow →
-              </button>
+              {factoryStep === 0 ? (
+                factoryLoading ? (
+                  <p style={{ color: "#888" }}>Generating a real validation for your idea…</p>
+                ) : factoryResult ? (
+                  <div style={{ whiteSpace: "pre-wrap", lineHeight: 1.6, color: "#ddd", fontSize: 14 }}>
+                    {factoryResult}
+                  </div>
+                ) : (
+                  <div className="factory-outputs">
+                    {businessFactorySteps[0].outputs.map((output, i) => (
+                      <article key={output}>
+                        <span>{["◎", "◇", "▦", "✓"][i]}</span>
+                        <div>
+                          <b>{output}</b>
+                          <small>Generated once you click Build my business</small>
+                        </div>
+                        <i>Pending</i>
+                      </article>
+                    ))}
+                  </div>
+                )
+              ) : (
+                <div className="factory-outputs">
+                  {businessFactorySteps[factoryStep].outputs.map((output, i) => (
+                    <article key={output}>
+                      <span>{["◎", "◇", "▦", "✓"][i]}</span>
+                      <div>
+                        <b>{output}</b>
+                        <small>Not built yet — this stage isn't automated</small>
+                      </div>
+                      <i>Planned</i>
+                    </article>
+                  ))}
+                </div>
+              )}
+              {factoryStep === 0 ? (
+                factoryResult && (
+                  <button onClick={() => triggerDownload("business-validation.md", factoryResult, "text/markdown")}>
+                    Download validation →
+                  </button>
+                )
+              ) : (
+                <button disabled style={{ opacity: 0.5, cursor: "not-allowed" }}>
+                  Coming soon
+                </button>
+              )}
             </section>
             <aside className="business-preview">
               <div className="preview-top">
-                <span>LIVE BUSINESS PREVIEW</span>
-                <em>82% READY</em>
+                <span>BUSINESS PREVIEW</span>
+                <em>{factoryResult ? "VALIDATED" : "NOT STARTED"}</em>
               </div>
               <div className="mini-brand">
-                <span>SF</span>
+                <span>{businessIdea.trim() ? businessIdea.trim()[0].toUpperCase() : "?"}</span>
                 <div>
-                  <b>SellerFlow Studio</b>
-                  <small>Build products people want.</small>
+                  <b>{businessIdea.trim() || "Describe your idea above"}</b>
+                  <small>{businessType}</small>
                 </div>
               </div>
-              <div className="mini-metrics">
-                <article>
-                  <span>Offer</span>
-                  <b>$39/mo</b>
-                </article>
-                <article>
-                  <span>Margin</span>
-                  <b>76%</b>
-                </article>
-                <article>
-                  <span>Launch</span>
-                  <b>2 days</b>
-                </article>
-              </div>
-              <div className="ready-list">
-                {[
-                  ["Brand + domain", "Ready"],
-                  ["Product + checkout", "Ready"],
-                  ["Legal + consent", "Review"],
-                  ["Marketing campaign", "Draft"],
-                ].map((x, i) => (
-                  <div key={x[0]}>
-                    <span className={i < 2 ? "done" : ""}>
-                      {i < 2 ? "✓" : i + 1}
-                    </span>
-                    <b>{x[0]}</b>
-                    <em>{x[1]}</em>
-                  </div>
-                ))}
-              </div>
-              <button onClick={() => notify("Business preview opened")}>
-                Preview storefront ↗
-              </button>
+              {factoryResult ? (
+                <div style={{ whiteSpace: "pre-wrap", fontSize: 12, color: "#999", lineHeight: 1.6, maxHeight: 220, overflow: "auto" }}>
+                  {factoryResult}
+                </div>
+              ) : (
+                <p style={{ color: "#666", fontSize: 13 }}>
+                  Click "Build my business" to generate a real, AI-written validation for this idea. Everything past Validate — branding, the live site, checkout, legal, and marketing — is still on our roadmap, not automated yet.
+                </p>
+              )}
             </aside>
           </div>
           <div className="digital-ceo">
             <div>
-              <span>DIGITAL CEO · ALWAYS ON</span>
-              <h2>The business keeps working after launch.</h2>
+              <span>DIGITAL CEO · ON THE ROADMAP</span>
+              <h2>Specialist agents that run the business after launch.</h2>
               <p>
-                Specialist agents watch the business, prepare actions, and bring
-                sensitive decisions to one approval inbox.
+                The plan: specialist agents watch the business, prepare actions, and bring
+                sensitive decisions to one approval inbox. None of this runs automatically yet —
+                today Bizorvia validates your idea for real, everything below is what's next.
               </p>
             </div>
             <div className="ceo-agents">
@@ -2314,8 +2392,8 @@ function PlatformView({
                     <b>{agent[1]} Agent</b>
                     <small>{agent[2]}</small>
                   </div>
-                  <em>
-                    <i /> Active
+                  <em style={{ opacity: 0.6 }}>
+                    <i style={{ background: "#666" }} /> Coming soon
                   </em>
                 </article>
               ))}
@@ -2324,10 +2402,11 @@ function PlatformView({
               <span>OWNER CONTROL</span>
               <p>
                 Purchases, ad spending, publishing, refunds, legal changes,
-                customer promises, and account changes wait for approval.
+                customer promises, and account changes will wait for approval
+                once this is built.
               </p>
-              <button onClick={() => notify("Approval inbox opened")}>
-                3 decisions waiting →
+              <button disabled style={{ opacity: 0.5, cursor: "not-allowed" }}>
+                No pending decisions
               </button>
             </div>
           </div>
@@ -2336,19 +2415,19 @@ function PlatformView({
         <div className="launch-workspace">
           <div className="launch-score">
             <div className="score-ring">
-              <span>89</span>
-              <small>LAUNCH SCORE</small>
+              <span>—</span>
+              <small>NOT BUILT YET</small>
             </div>
             <div>
-              <span>PRODUCTION READINESS</span>
-              <h2>Five checks remain before public launch</h2>
+              <span>PRODUCTION READINESS · ROADMAP PREVIEW</span>
+              <h2>The plan: one launch score across technical, financial, legal, and support readiness.</h2>
               <p>
-                Bizorvia combines technical, financial, legal, recovery, and
-                customer-experience gates in one deployment decision.
+                None of the systems below run automatically yet. This is what
+                Launch OS is planned to combine into one deployment decision.
               </p>
             </div>
-            <button onClick={() => notify("Full launch audit started")}>
-              ▶ Run full audit
+            <button disabled style={{ opacity: 0.5, cursor: "not-allowed" }}>
+              ▶ Coming soon
             </button>
           </div>
           <div className="launch-layout">
@@ -2379,10 +2458,10 @@ function PlatformView({
               <p>{launchSystems[launchSystem].copy}</p>
               <div className="system-proof">
                 {[
-                  ["Coverage", "All projects"],
-                  ["Evidence", "Signed + timestamped"],
-                  ["Control", "Owner approval"],
-                  ["Output", "Exportable record"],
+                  ["Coverage", "Planned"],
+                  ["Evidence", "Planned"],
+                  ["Control", "Planned"],
+                  ["Output", "Planned"],
                 ].map((x) => (
                   <article key={x[0]}>
                     <span>{x[0]}</span>
@@ -2390,41 +2469,37 @@ function PlatformView({
                   </article>
                 ))}
               </div>
-              <button
-                onClick={() =>
-                  notify(`${launchSystems[launchSystem].title} opened`)
-                }
-              >
-                Open system →
+              <button disabled style={{ opacity: 0.5, cursor: "not-allowed" }}>
+                Coming soon
               </button>
             </section>
           </div>
           <div className="release-gates">
             <div className="gate-head">
               <div>
-                <span>RELEASE GATES</span>
+                <span>RELEASE GATES · ROADMAP PREVIEW</span>
                 <b>Automatic deployment blockers</b>
               </div>
-              <button onClick={() => notify("Release policy editor opened")}>
-                Edit policy
+              <button disabled style={{ opacity: 0.5, cursor: "not-allowed" }}>
+                Coming soon
               </button>
             </div>
             {[
-              ["Security & dependencies", 96, "Passed"],
-              ["Privacy & legal alignment", 82, "3 actions"],
-              ["Profitability & usage caps", 91, "Passed"],
-              ["Backup restore test", 78, "1 action"],
-              ["Customer journey & support", 86, "1 action"],
-            ].map((g) => (
-              <article key={String(g[0])}>
+              "Security & dependencies",
+              "Privacy & legal alignment",
+              "Profitability & usage caps",
+              "Backup restore test",
+              "Customer journey & support",
+            ].map((label) => (
+              <article key={label}>
                 <div>
-                  <b>{g[0]}</b>
-                  <small>{g[2]}</small>
+                  <b>{label}</b>
+                  <small>Not built yet</small>
                 </div>
                 <span>
-                  <i style={{ width: `${g[1]}%` }} />
+                  <i style={{ width: "0%" }} />
                 </span>
-                <em>{g[1]}%</em>
+                <em>—</em>
               </article>
             ))}
           </div>
@@ -2645,60 +2720,66 @@ function PlatformView({
               <i />
               <i />
               <i />
-              <span>12 global regions</span>
+              <span>Backed by Vercel's global edge network</span>
             </div>
           </div>
           <div className="hosting-services">
             {[
-              ["▤", "Web hosting", "Static, SSR & streaming", "Active"],
-              ["⌁", "Server functions", "API & background jobs", "24 running"],
-              ["◫", "Object storage", "Images, video & files", "18.4 GB"],
-              ["◎", "Global CDN", "Smart edge caching", "98.7% hit"],
-              ["◇", "SSL & security", "Automatic certificates", "Protected"],
-              ["↶", "Backups", "Daily restore points", "14 saved"],
+              ["▤", "Web hosting", "Static site hosting", "Active", "/projects"],
+              ["◫", "Object storage", "Files you upload", "Active", "/storage"],
+              ["⌁", "Server functions", "API & background jobs", "Coming soon", null],
+              ["◎", "Global CDN", "Smart edge caching", "Coming soon", null],
+              ["◇", "SSL & security", "Automatic certificates", "Coming soon", null],
+              ["↶", "Backups", "Daily restore points", "Coming soon", null],
             ].map((service) => (
-              <button
-                key={service[1]}
-                onClick={() => notify(`${service[1]} settings opened`)}
-              >
-                <span>{service[0]}</span>
-                <div>
-                  <b>{service[1]}</b>
-                  <small>{service[2]}</small>
-                </div>
-                <em>{service[3]}</em>
-                <i>›</i>
-              </button>
+              service[4] ? (
+                <a key={service[1]} href={service[4] as string} style={{ textDecoration: "none" }}>
+                  <span>{service[0]}</span>
+                  <div>
+                    <b>{service[1]}</b>
+                    <small>{service[2]}</small>
+                  </div>
+                  <em>{service[3]}</em>
+                  <i>›</i>
+                </a>
+              ) : (
+                <button key={service[1]} disabled style={{ opacity: 0.5, cursor: "not-allowed" }}>
+                  <span>{service[0]}</span>
+                  <div>
+                    <b>{service[1]}</b>
+                    <small>{service[2]}</small>
+                  </div>
+                  <em>{service[3]}</em>
+                  <i>›</i>
+                </button>
+              )
             ))}
           </div>
           <div className="hosting-projects">
             <div>
               <b>Hosted applications</b>
-              <button onClick={() => notify("Usage analytics opened")}>
-                View usage
-              </button>
+              <a href="/projects" style={{ color: "#999", fontSize: 13, textDecoration: "none" }}>Open Projects →</a>
             </div>
-            {[
-              [
-                "Neelo Digital Store",
-                "neelodigitalproducts.com",
-                "Production",
-                "99.99%",
-              ],
-              ["Amara Crochet", "amaratwinsoul.com", "Production", "99.98%"],
-              ["Sellovate", "sellovate.us", "Production", "100%"],
-            ].map((app, i) => (
-              <article key={app[0]}>
-                <span className={`project-logo p${i}`}>{app[0][0]}</span>
+            {!user ? (
+              <p style={{ color: "#666", fontSize: 14, padding: "16px 0" }}>Sign in to see your real hosted applications.</p>
+            ) : realProjectsLoading ? (
+              <p style={{ color: "#666", fontSize: 14, padding: "16px 0" }}>Loading…</p>
+            ) : !realProjects || realProjects.length === 0 ? (
+              <p style={{ color: "#666", fontSize: 14, padding: "16px 0" }}>
+                No hosted applications yet. <a href="/projects" style={{ color: "#d8ff72" }}>Deploy your first one →</a>
+              </p>
+            ) : realProjects.map((app, i) => (
+              <article key={app.id}>
+                <span className={`project-logo p${i % 3}`}>{app.name.slice(0, 1).toUpperCase()}</span>
                 <div>
-                  <b>{app[0]}</b>
-                  <small>🔒 {app[1]}</small>
+                  <b>{app.name}</b>
+                  <small>🔒 {app.url ? app.url.replace(/^https?:\/\//, "") : "not deployed yet"}</small>
                 </div>
-                <em>{app[2]}</em>
-                <strong>{app[3]} uptime</strong>
-                <button onClick={() => notify(`${app[0]} hosting opened`)}>
+                <em>{app.status === "deployed" ? "Production" : app.status === "partial" ? "Partial deploy" : "Not deployed"}</em>
+                <strong>{app.last_deployed_at ? new Date(app.last_deployed_at).toLocaleDateString() : "—"}</strong>
+                <a href="/projects" style={{ color: "#d8ff72", fontSize: 13, textDecoration: "none" }}>
                   Manage
-                </button>
+                </a>
               </article>
             ))}
           </div>
@@ -2755,38 +2836,23 @@ function PlatformView({
       ) : section === "Domains" ? (
         <div className="domain-workspace">
           <div>
-            <span>DOMAIN CENTER</span>
-            <h2>Bizorvia.com is secured and ready to connect.</h2>
+            <span>DOMAIN CENTER · ROADMAP PREVIEW</span>
+            <h2>Custom domain management for your projects is on the roadmap.</h2>
+            <p style={{ color: "#666", fontSize: 13, maxWidth: 520 }}>
+              You can attach a custom domain to a project from its Domain tab
+              today, but automatic DNS setup and verification isn't built yet —
+              you'll need to point your DNS manually for now.
+            </p>
             <div className="domain-search">
               <input
                 value={domain}
                 onChange={(e) => setDomain(e.target.value)}
+                placeholder="yourdomain.com"
               />
-              <button onClick={() => notify(`${domain} DNS setup opened`)}>
-                Manage DNS
+              <button disabled style={{ opacity: 0.5, cursor: "not-allowed" }}>
+                Coming soon
               </button>
             </div>
-          </div>
-          <div className="domain-results">
-            {[
-              ["bizorvia.com", "Namecheap", "Owned"],
-              ["bizorvia.dev", "Optional", "Protect brand"],
-              ["bizorvia.app", "Optional", "Protect brand"],
-            ].map((d, i) => (
-              <article key={d[0]}>
-                <span
-                  className={i === 0 ? "domain-dot" : "domain-dot premium"}
-                />
-                <b>{d[0]}</b>
-                <small>{d[1]}</small>
-                <em>{d[2]}</em>
-                <button
-                  onClick={() => notify(`${d[0]} domain settings opened`)}
-                >
-                  {i === 0 ? "Connect" : "Check"}
-                </button>
-              </article>
-            ))}
           </div>
         </div>
       ) : section === "Payments" ? (

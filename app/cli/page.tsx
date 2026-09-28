@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import CopyInstallButton from './CopyInstallButton';
 
 export const metadata: Metadata = {
   title: 'Bizorvia CLI — The Coding Agent for Your Terminal',
@@ -98,7 +99,7 @@ export default function CLIPage() {
         <div style={{ display: 'inline-flex', alignItems: 'center', gap: 16, background: '#111', border: '1px solid #2a2a2a', borderRadius: 12, padding: '14px 24px', marginBottom: 16 }}>
           <span style={{ color: '#555', fontSize: 14, userSelect: 'none' }}>$</span>
           <code style={{ color: '#d8ff72', fontSize: 16, fontFamily: 'monospace', letterSpacing: '0.5px' }}>npm install -g bizorvia</code>
-          <span style={{ color: '#555', fontSize: 12 }}>copy</span>
+          <CopyInstallButton command="npm install -g bizorvia" />
         </div>
         <p style={{ color: '#555', fontSize: 13 }}>Free plan includes 10 AI actions/month. No credit card required.</p>
 

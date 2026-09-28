@@ -6,15 +6,19 @@ export const metadata: Metadata = {
 };
 
 const posts = [
-  { slug: 'how-to-use-bizorvia', title: 'How to Use Bizorvia: A Complete Getting Started Guide', date: '2026-09-22', category: 'Guide', excerpt: 'Everything you need to launch with Bizorvia — from your first project to automating your entire workflow.', readTime: '6 min' },
-  { slug: 'automate-your-business-with-bizorvia', title: 'Automate 80% of Your Business With Bizorvia (No Tech Team Needed)', date: '2026-09-15', category: 'Automation', excerpt: 'A practical step-by-step guide for solo founders and small teams who want to do more with less.', readTime: '7 min' },
-  { slug: 'bizorvia-for-content-marketing', title: 'How Bizorvia Powers Your Entire Content Marketing Strategy', date: '2026-09-08', category: 'Marketing', excerpt: 'From blogs to social posts to email campaigns — one platform to create content that actually converts.', readTime: '8 min' },
-  { slug: 'bizorvia-vs-hiring', title: 'Bizorvia vs. Hiring: When Automation Wins Every Time', date: '2026-08-28', category: 'Strategy', excerpt: 'Calculate the real cost of tasks and see why Bizorvia beats hiring for most small business workflows.', readTime: '6 min' },
-  { slug: 'bizorvia-roi-guide', title: 'The Bizorvia ROI Guide: How to Measure What Matters', date: '2026-08-19', category: 'Strategy', excerpt: 'Stop guessing — here is how to calculate the real returns your business gets from Bizorvia.', readTime: '4 min' },
-  { slug: 'bizorvia-for-solo-founders', title: 'Why Solo Founders Are Choosing Bizorvia to Run Their Entire Business', date: '2026-08-10', category: 'Founders', excerpt: 'One person. One platform. See how solo founders use Bizorvia to compete with teams ten times their size.', readTime: '5 min' },
+  { slug: 'how-to-use-bizorvia', title: 'Your First Day on Bizorvia: A Simple Step-by-Step Guide for New Business Owners', date: '2026-09-22', category: 'Guide', excerpt: 'A simple, step-by-step walkthrough of your first day on Bizorvia — from signup to your first live business.', readTime: '8 min' },
+  { slug: 'what-is-bizorvia', title: 'What Is Bizorvia? The AI Operating System Built for Business Owners', date: '2026-09-22', category: 'Product', excerpt: 'A quick overview of what Bizorvia is and how it helps business owners run everything from one place.', readTime: '4 min' },
+  { slug: 'bizorvia-features-2026', title: 'Inside Bizorvia: Every Feature That Runs Your Business on Autopilot', date: '2026-09-22', category: 'Product', excerpt: 'A tour of every module inside Bizorvia and what each one is built to do.', readTime: '5 min' },
+  { slug: 'bizorvia-for-solo-founders', title: 'Why Solo Founders Are Replacing Their Entire Tool Stack With Bizorvia', date: '2026-09-22', category: 'Strategy', excerpt: 'How solo founders are consolidating research, branding, website, payments, and marketing into one workspace.', readTime: '5 min' },
+  { slug: 'how-to-automate-your-business-with-ai', title: 'How to Automate 80% of Your Business With AI (Without a Tech Team)', date: '2025-06-08', category: 'Automation', excerpt: 'A practical guide to automating most of your day-to-day business tasks with AI, no developer required.', readTime: '7 min' },
+  { slug: 'ai-tools-for-small-business-2025', title: '10 AI Tools That Are Changing Small Business in 2025', date: '2025-06-15', category: 'AI Tools', excerpt: 'Ten AI tools worth knowing about if you are running a small business in 2025.', readTime: '5 min' },
+  { slug: 'ai-vs-hiring-what-makes-sense', title: 'AI vs. Hiring: When Does It Make Sense to Automate?', date: '2025-05-28', category: 'Strategy', excerpt: 'When automation beats hiring, and when it does not — a practical framework for small business owners.', readTime: '6 min' },
+  { slug: 'content-marketing-with-ai', title: "Content Marketing With AI: A Beginner's Playbook", date: '2025-05-19', category: 'Marketing', excerpt: 'A beginner\'s playbook for using AI to plan, write, and publish content that actually converts.', readTime: '8 min' },
+  { slug: 'bizorvia-vs-chatgpt', title: 'Bizorvia vs. ChatGPT: Which One Is Actually Better for Business?', date: '2025-05-10', category: 'Comparison', excerpt: 'A head-to-head look at what Bizorvia does differently from a general-purpose AI chat tool.', readTime: '5 min' },
+  { slug: 'roi-of-ai-tools', title: 'The ROI of AI Tools: How to Measure What Matters', date: '2025-05-01', category: 'Strategy', excerpt: 'How to actually measure the return you are getting from the AI tools you have adopted.', readTime: '4 min' },
 ];
 
-const catColors: Record<string, string> = { 'Guide': '#d8ff72', 'Automation': '#a78bfa', 'Strategy': '#fb923c', 'Marketing': '#34d399', 'Founders': '#60a5fa' };
+const catColors: Record<string, string> = { 'Guide': '#d8ff72', 'Product': '#60a5fa', 'Strategy': '#fb923c', 'Marketing': '#34d399', 'Automation': '#a78bfa', 'AI Tools': '#f472b6', 'Comparison': '#38bdf8' };
 
 export default function BlogPage() {
   return (

@@ -40,10 +40,10 @@ function getMimeType(filePath: string): string {
 // e.g. /api/site/my-store/products/index.html
 export async function GET(
   req: NextRequest,
-  { params }: { params: { slug: string; path?: string[] } }
+  { params }: { params: Promise<{ slug: string; path?: string[] }> }
 ) {
   try {
-    const { slug, path } = params;
+    const { slug, path } = await params;
 
     // Sanitize slug — only allow alphanumeric, hyphens, underscores
     if (!/^[a-z0-9_-]+$/i.test(slug)) {
