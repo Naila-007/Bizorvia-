@@ -39,12 +39,6 @@ const starterTasks = [
   },
 ];
 
-const files = [
-  { name: "Market brief.pdf", type: "PDF", color: "rose" },
-  { name: "Competitor matrix.xlsx", type: "XLSX", color: "green" },
-  { name: "Launch strategy.pptx", type: "PPTX", color: "amber" },
-];
-
 const cloudModules = [
   {
     icon: "✦",
@@ -1281,19 +1275,30 @@ export default function Home() {
                   </div>
                 </div>
                 <div className="file-grid">
-                  {files.map((file) => (
-                    <button
-                      key={file.name}
-                      onClick={() => notify(`${file.name} preview opened`)}
-                    >
-                      <span className={file.color}>{file.type}</span>
-                      <div>
-                        <b>{file.name}</b>
-                        <small>Created moments ago</small>
-                      </div>
-                      <i>↓</i>
-                    </button>
-                  ))}
+                  {!aiResult ? (
+                    <p style={{ color: "#666", padding: "24px 4px", gridColumn: "1 / -1" }}>
+                      Run this task above to generate real content — your files will appear here once it's ready.
+                    </p>
+                  ) : (
+                    <>
+                      <button onClick={downloadPlan}>
+                        <span className="rose">MD</span>
+                        <div>
+                          <b>business-plan.md</b>
+                          <small>Ready to download</small>
+                        </div>
+                        <i>↓</i>
+                      </button>
+                      <button onClick={downloadAppDemo} disabled={filesLoading}>
+                        <span className="green">HTML</span>
+                        <div>
+                          <b>app-demo.html</b>
+                          <small>{filesLoading ? "Generating…" : "Ready to download"}</small>
+                        </div>
+                        <i>↓</i>
+                      </button>
+                    </>
+                  )}
                 </div>
               </div>
             )}
