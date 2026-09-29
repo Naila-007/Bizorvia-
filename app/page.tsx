@@ -982,10 +982,9 @@ export default function Home() {
                 <div>
                   <button
                     type="button"
-                    title="Attach files"
-                    onClick={() =>
-                      notify("File upload ready in the full product")
-                    }
+                    disabled
+                    title="Attaching files to a task isn't built yet"
+                    style={{ opacity: 0.5, cursor: "not-allowed" }}
                   >
                     ＋
                   </button>
@@ -1253,18 +1252,18 @@ export default function Home() {
                       <b>Human control</b>
                       <span className="safe">Protected</span>
                     </div>
-                    <p>Sensitive actions always wait for your approval.</p>
+                    <p>These settings aren't adjustable yet — today, this task can only generate one AI text response, so purchases, publishing, and account changes aren't possible regardless.</p>
                     <label>
                       <span>Purchases & payments</span>
-                      <input type="checkbox" defaultChecked />
+                      <input type="checkbox" defaultChecked disabled title="Not adjustable yet" />
                     </label>
                     <label>
                       <span>Publishing & sending</span>
-                      <input type="checkbox" defaultChecked />
+                      <input type="checkbox" defaultChecked disabled title="Not adjustable yet" />
                     </label>
                     <label>
                       <span>Account changes</span>
-                      <input type="checkbox" defaultChecked />
+                      <input type="checkbox" defaultChecked disabled title="Not adjustable yet" />
                     </label>
                   </section>
                 </aside>
@@ -1939,6 +1938,9 @@ function PlatformView({
                   className={
                     i === 4 ? "active" : i === 0 || i === 3 ? "folder" : ""
                   }
+                  disabled
+                  title="This file tree is illustrative — browsing files isn't built yet"
+                  style={{ opacity: i === 4 ? 1 : 0.5, cursor: "not-allowed" }}
                 >
                   <span>{file[0]}</span>
                   {file[1]}
@@ -1952,7 +1954,13 @@ function PlatformView({
                   business-factory.ts <i>●</i>
                 </span>
                 <span>marketing-agent.ts</span>
-                <button>＋</button>
+                <button
+                  disabled
+                  title="Opening additional tabs isn't built yet"
+                  style={{ opacity: 0.5, cursor: "not-allowed" }}
+                >
+                  ＋
+                </button>
               </div>
               <div className="code-surface">
                 <div className="line-numbers">
