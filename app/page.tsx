@@ -882,23 +882,9 @@ export default function Home() {
                 }
               </span>
               {item}
-              {item === "Deploy" && <em>3</em>}
             </button>
           ))}
         </nav>
-        <div className="sidebar-label">Recent</div>
-        <button className="recent-item">
-          <i className="status-dot live" />
-          Software market launch plan
-        </button>
-        <button className="recent-item">
-          <i className="status-dot done" />
-          Etsy trend research
-        </button>
-        <button className="recent-item">
-          <i className="status-dot done" />
-          Q3 content calendar
-        </button>
         <div className="sidebar-bottom">
           <div className="credit">
             <span>
