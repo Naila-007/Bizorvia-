@@ -28,11 +28,19 @@ type Stats = {
   today: number;
 };
 
+type ServiceStatus = {
+  stripeConfigured: boolean;
+  aiConfigured: boolean;
+  emailConfigured: boolean;
+  supabaseConfigured: boolean;
+};
+
 export default function AdminPage() {
   const { user, loading } = useAuth();
   const [profiles, setProfiles] = useState<Profile[]>([]);
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [stats, setStats] = useState<Stats>({ total: 0, free: 0, paid: 0, today: 0 });
+  const [serviceStatus, setServiceStatus] = useState<ServiceStatus | null>(null);
   const [dataLoading, setDataLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("overview");
   const [search, setSearch] = useState("");
@@ -67,6 +75,12 @@ export default function AdminPage() {
     if (contactsRes.ok) {
       const cData: Contact[] = await contactsRes.json();
       setContacts(cData);
+    }
+
+    const statusRes = await fetch("/api/admin/status", { headers });
+    if (statusRes.ok) {
+      const sData: ServiceStatus = await statusRes.json();
+      setServiceStatus(sData);
     }
 
     setDataLoading(false);
@@ -292,9 +306,15 @@ export default function AdminPage() {
                 </div>
               ))}
             </div>
-            <div style={{ background:"#111", border:"1px solid #f59e0b33", borderRadius:12, padding:24 }}>
-              <div style={{ fontWeight:700, fontSize:16, marginBottom:4 }}>💳 Stripe Payments — Coming Next</div>
-              <div style={{ color:"#666", fontSize:14 }}>Add STRIPE_SECRET_KEY to Vercel env vars to enable real billing.</div>
+            <div style={{ background:"#111", border: `1px solid ${serviceStatus?.stripeConfigured ? "#d8ff7233" : "#f59e0b33"}`, borderRadius:12, padding:24 }}>
+              <div style={{ fontWeight:700, fontSize:16, marginBottom:4 }}>
+                💳 Stripe Payments — {serviceStatus === null ? "Checking…" : serviceStatus.stripeConfigured ? "Live" : "Not Connected"}
+              </div>
+              <div style={{ color:"#666", fontSize:14 }}>
+                {serviceStatus?.stripeConfigured
+                  ? "STRIPE_SECRET_KEY is set — checkout on the pricing page charges real cards."
+                  : "Add STRIPE_SECRET_KEY to Vercel env vars to enable real billing."}
+              </div>
             </div>
           </div>
         )}
@@ -302,13 +322,33 @@ export default function AdminPage() {
         {activeTab === "health" && (
           <div style={{ display:"grid", gap:16 }}>
             {[
-              { name:"Supabase Database",   status:"Operational", color:"#d8ff72", detail:`${profiles.length} users in profiles table` },
+              {
+                name:"Supabase Database",
+                status: serviceStatus?.supabaseConfigured ? "Operational" : "Checking…",
+                color: serviceStatus?.supabaseConfigured ? "#d8ff72" : "#666",
+                detail:`${profiles.length} users in profiles table`,
+              },
               { name:"Contact Submissions", status:"Operational", color:"#d8ff72", detail:`${contacts.length} submissions in contact_submissions table` },
               { name:"Vercel Hosting",      status:"Operational", color:"#d8ff72", detail:"bizorvia.com live on Vercel with SSL + security headers" },
               { name:"Authentication",      status:"Operational", color:"#d8ff72", detail:"Email/password auth + JWT verification" },
-              { name:"Email (Resend)",      status:"Operational", color:"#d8ff72", detail:"hello@bizorvia.com — domain verified, DKIM + SPF active" },
-              { name:"AI API (Claude)",     status: process.env.NEXT_PUBLIC_AI_ENABLED === "true" ? "Configured" : "Add ANTHROPIC_API_KEY", color:"#f59e0b", detail:"Secured behind auth + rate limiting" },
-              { name:"Stripe Payments",     status:"Not Connected", color:"#ef4444", detail:"Add STRIPE_SECRET_KEY to enable billing" },
+              {
+                name:"Email (Resend)",
+                status: serviceStatus === null ? "Checking…" : serviceStatus.emailConfigured ? "Operational" : "Add RESEND_API_KEY",
+                color: serviceStatus?.emailConfigured ? "#d8ff72" : "#f59e0b",
+                detail: serviceStatus?.emailConfigured ? "hello@bizorvia.com — RESEND_API_KEY is set" : "Contact form emails won't send until RESEND_API_KEY is set",
+              },
+              {
+                name:"AI API (Claude)",
+                status: serviceStatus === null ? "Checking…" : serviceStatus.aiConfigured ? "Configured" : "Add ANTHROPIC_API_KEY",
+                color: serviceStatus?.aiConfigured ? "#d8ff72" : "#f59e0b",
+                detail:"Secured behind auth + rate limiting",
+              },
+              {
+                name:"Stripe Payments",
+                status: serviceStatus === null ? "Checking…" : serviceStatus.stripeConfigured ? "Operational" : "Not Connected",
+                color: serviceStatus?.stripeConfigured ? "#d8ff72" : "#ef4444",
+                detail: serviceStatus?.stripeConfigured ? "STRIPE_SECRET_KEY is set — live checkout" : "Add STRIPE_SECRET_KEY to enable billing",
+              },
             ].map(item => (
               <div key={item.name} style={{ background:"#111", border:"1px solid #1a1a1a", borderRadius:12, padding:24, display:"flex", alignItems:"center", gap:20 }}>
                 <div style={{ width:12, height:12, borderRadius:"50%", background:item.color, flexShrink:0 }} />
