@@ -26,10 +26,22 @@ async function getUserAndCredits(token: string) {
   return { user, profile };
 }
 
+const ALLOWED_ORIGINS = [
+  'https://bizorvia.com',
+  'https://www.bizorvia.com',
+];
+const VERCEL_PREVIEW_RE = /^https:\/\/bizorvia[a-z0-9-]*\.vercel\.app$/;
+
 export async function POST(req: NextRequest) {
   const origin = req.headers.get('origin') || '';
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || '';
-  if (siteUrl && !origin.startsWith(siteUrl)) {
+  const isDev = process.env.NODE_ENV === 'development';
+  const configuredSiteUrl = process.env.NEXT_PUBLIC_SITE_URL || '';
+  const isAllowed =
+    isDev ||
+    ALLOWED_ORIGINS.some((o) => origin.startsWith(o)) ||
+    (configuredSiteUrl && origin.startsWith(configuredSiteUrl)) ||
+    VERCEL_PREVIEW_RE.test(origin);
+  if (origin && !isAllowed) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   }
 
