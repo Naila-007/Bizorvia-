@@ -942,11 +942,24 @@ export default function Home() {
             <img src="/bizorvia-mark.png" alt="" />Bizorvia
           </div>
           <div className="header-actions">
-            <button onClick={() => notify("No new notifications")}>♢</button>
+            <button
+              disabled
+              title="Notifications aren't built yet"
+              style={{ opacity: 0.5, cursor: "not-allowed" }}
+            >
+              ♢
+            </button>
             {user ? (
               <button
                 className="share"
-                onClick={() => notify("Workspace link copied")}
+                onClick={async () => {
+                  try {
+                    await navigator.clipboard.writeText(window.location.href);
+                    notify("Workspace link copied");
+                  } catch {
+                    notify("Couldn't copy — copy the URL from your address bar");
+                  }
+                }}
               >
                 Share workspace
               </button>
@@ -992,15 +1005,19 @@ export default function Home() {
                   </button>
                   <button
                     type="button"
-                    onClick={() => notify("Deep research enabled")}
+                    disabled
+                    title="Deep research mode isn't built yet"
+                    style={{ opacity: 0.5, cursor: "not-allowed" }}
                   >
-                    ◎ Deep research
+                    ◎ Deep research (soon)
                   </button>
                   <button
                     type="button"
-                    onClick={() => notify("Private cloud selected")}
+                    disabled
+                    title="Private cloud isn't built yet"
+                    style={{ opacity: 0.5, cursor: "not-allowed" }}
                   >
-                    ⌁ Private cloud
+                    ⌁ Private cloud (soon)
                   </button>
                 </div>
                 <button
@@ -1019,8 +1036,12 @@ export default function Home() {
             </div>
             <div className="section-title">
               <h2>Start with a superpower</h2>
-              <button onClick={() => notify("Template library opened")}>
-                Browse 120+ templates →
+              <button
+                disabled
+                title="A browsable template library isn't built yet — the 4 starter cards below are what's available today"
+                style={{ opacity: 0.5, cursor: "not-allowed" }}
+              >
+                Browse templates (coming soon) →
               </button>
             </div>
             <div className="starter-grid">
@@ -1051,7 +1072,7 @@ export default function Home() {
                   · Images · Automations
                 </p>
               </div>
-              <button onClick={() => notify("Capability guide opened")}>
+              <button onClick={() => { window.location.href = "/features"; }}>
                 See how it works
               </button>
             </div>
@@ -1133,7 +1154,11 @@ export default function Home() {
                 <button onClick={() => setPaused((v) => !v)}>
                   {paused ? "Resume" : "Pause"}
                 </button>
-                <button onClick={() => notify("Task options opened")}>
+                <button
+                  disabled
+                  title="Task options aren't built yet"
+                  style={{ opacity: 0.5, cursor: "not-allowed" }}
+                >
                   •••
                 </button>
               </div>
@@ -1147,7 +1172,7 @@ export default function Home() {
                     onClick={() => setTab(item)}
                   >
                     {item}
-                    {item === "Files" && <em>3</em>}
+                    {item === "Files" && aiResult && <em>2</em>}
                   </button>
                 ),
               )}
@@ -1222,7 +1247,7 @@ export default function Home() {
                       <span>4 active</span>
                     </div>
                     {[
-                      ["R", "Researcher", "Scanning 28 sources"],
+                      ["R", "Researcher", "Researching"],
                       ["S", "Strategist", "Mapping opportunities"],
                       ["B", "Builder", "Preparing dashboard"],
                       ["V", "Verifier", "Checking every claim"],
@@ -1306,31 +1331,39 @@ export default function Home() {
               <div className="panel-view">
                 <div className="panel-heading">
                   <div>
-                    <h2>Research intelligence</h2>
-                    <p>28 cited sources, ranked by authority and relevance.</p>
+                    <h2>Research intelligence · ROADMAP PREVIEW</h2>
+                    <p>
+                      {aiResult
+                        ? "Your task above generated real AI content — source citation tracking for that content isn't built yet."
+                        : "Run a task above to generate real content. Source citation tracking isn't built yet."}
+                    </p>
                   </div>
-                  <button onClick={() => notify("Citation report opened")}>
-                    View citations
+                  <button
+                    disabled
+                    title="Citation tracking isn't built yet"
+                    style={{ opacity: 0.5, cursor: "not-allowed" }}
+                  >
+                    View citations (coming soon)
                   </button>
                 </div>
                 <div className="insight-grid">
                   <article>
-                    <span>KEY INSIGHT</span>
+                    <span>EXAMPLE · KEY INSIGHT</span>
                     <h3>Trust is the strongest differentiator</h3>
                     <p>
                       Users want autonomous execution, but adoption rises when
                       decisions, sources, and permissions remain visible.
                     </p>
-                    <small>Supported by 11 sources · 94% confidence</small>
+                    <small>Example only — not tracked yet</small>
                   </article>
                   <article>
-                    <span>MARKET SIGNAL</span>
+                    <span>EXAMPLE · MARKET SIGNAL</span>
                     <h3>Teams want reusable workflows</h3>
                     <p>
                       The next wave is moving from one-off prompts toward
                       repeatable, governed automations shared across teams.
                     </p>
-                    <small>Supported by 8 sources · 91% confidence</small>
+                    <small>Example only — not tracked yet</small>
                   </article>
                 </div>
               </div>
@@ -1341,16 +1374,17 @@ export default function Home() {
                   <i />
                   <i />
                   <i />
-                  <div>🔒 secure research workspace</div>
+                  <div>🔒 secure research workspace · ROADMAP PREVIEW</div>
                 </div>
                 <div className="browser-body">
                   <span className="browser-orb">✦</span>
-                  <h2>Agent browser is working</h2>
+                  <h2>Live agent browsing isn't built yet</h2>
                   <p>
-                    Reviewing product pages, pricing, customer feedback, and
-                    market reports across 12 open tabs.
+                    This is a preview of what an autonomous browsing agent
+                    could look like — it isn't reviewing real pages right now.
+                    The "Strategy Agent" note on the Live run tab is the one
+                    real AI response in this task.
                   </p>
-                  <div className="scan-line" />
                 </div>
               </div>
             )}
@@ -1358,9 +1392,10 @@ export default function Home() {
               <div className="panel-view">
                 <div className="panel-heading">
                   <div>
-                    <h2>Decision ledger</h2>
+                    <h2>Decision ledger · ROADMAP PREVIEW</h2>
                     <p>
-                      A clear audit trail of what the agents decided—and why.
+                      Not built yet — this is an example of what an audit
+                      trail of agent decisions could look like.
                     </p>
                   </div>
                 </div>
@@ -1370,22 +1405,20 @@ export default function Home() {
                     <div>
                       <b>Prioritize trust-led positioning</b>
                       <p>
-                        Chosen because transparency appears in 67% of
-                        high-intent customer feedback.
+                        Example only — decision tracking isn't tracked yet.
                       </p>
                     </div>
-                    <em>High confidence</em>
+                    <em>Example</em>
                   </article>
                   <article>
                     <span>02</span>
                     <div>
                       <b>Target small business teams first</b>
                       <p>
-                        Faster adoption cycle and strongest pain around
-                        fragmented tools.
+                        Example only — decision tracking isn't tracked yet.
                       </p>
                     </div>
-                    <em>Medium confidence</em>
+                    <em>Example</em>
                   </article>
                 </div>
               </div>
@@ -1426,7 +1459,44 @@ function PlatformView({
   const [agentResponse, setAgentResponse] = useState("");
   const [agentError, setAgentError] = useState("");
   const [agentRunning, setAgentRunning] = useState(false);
+  const [checkoutLoadingPlan, setCheckoutLoadingPlan] = useState<string | null>(null);
+  const [checkoutError, setCheckoutError] = useState("");
   const { user } = useAuth();
+
+  async function startCheckout(planKey: string) {
+    setCheckoutError("");
+    if (planKey === "free") {
+      window.location.href = user ? "/" : "/signup";
+      return;
+    }
+    if (!user) {
+      window.location.href = "/signup";
+      return;
+    }
+    setCheckoutLoadingPlan(planKey);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        window.location.href = "/login";
+        return;
+      }
+      const res = await fetch("/api/stripe/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${session.access_token}` },
+        body: JSON.stringify({ plan: planKey }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (res.ok && data.url) {
+        window.location.href = data.url;
+      } else {
+        setCheckoutError(data.error || "Checkout failed. Please try again.");
+        setCheckoutLoadingPlan(null);
+      }
+    } catch {
+      setCheckoutError("Network error reaching Stripe. Please try again.");
+      setCheckoutLoadingPlan(null);
+    }
+  }
 
   type RealProject = {
     id: string;
@@ -1605,8 +1675,12 @@ function PlatformView({
           <h1>{content.title}</h1>
           <p>{content.copy}</p>
         </div>
-        <button onClick={() => notify(`${content.action} flow opened`)}>
-          ＋ {content.action}
+        <button
+          disabled
+          title={`${content.action} isn't built yet`}
+          style={{ opacity: 0.5, cursor: "not-allowed" }}
+        >
+          ＋ {content.action} (soon)
         </button>
       </div>
       <div className="platform-stats">
@@ -1618,71 +1692,7 @@ function PlatformView({
           </article>
         ))}
       </div>
-      {section === "Admin" ? (
-        <div className="admin-workspace">
-          <div className="admin-banner">
-            <img src="/bizorvia-mark.png" alt="Bizorvia" />
-            <div>
-              <span>OWNER ACCESS · PROTECTED</span>
-              <h2>Admin Control Center</h2>
-              <p>Private command center for operating the entire Bizorvia platform.</p>
-            </div>
-            <em><i /> All systems operational</em>
-          </div>
-          <div className="admin-kpis">
-            {[
-              ["$18,420", "Revenue this month", "+18.4%"],
-              ["1,284", "Active customers", "+126"],
-              ["86", "Businesses live", "+14"],
-              ["74%", "Gross margin", "+3.2%"],
-            ].map((item) => (
-              <article key={item[1]}><span>{item[1]}</span><b>{item[0]}</b><em>{item[2]}</em></article>
-            ))}
-          </div>
-          <div className="admin-grid">
-            <section className="admin-panel admin-health">
-              <div className="admin-panel-head"><div><span>LIVE OPERATIONS</span><b>Platform health</b></div><em>Updated now</em></div>
-              {[
-                ["Websites & apps", "99.99%", "Operational"],
-                ["Database & storage", "24 ms", "Operational"],
-                ["Payments", "96.8%", "Healthy"],
-                ["Agents & automations", "3,822 runs", "Operational"],
-                ["Domains & SSL", "100%", "Protected"],
-              ].map((row) => <article key={row[0]}><i /><b>{row[0]}</b><span>{row[1]}</span><em>{row[2]}</em></article>)}
-            </section>
-            <section className="admin-panel admin-approvals">
-              <div className="admin-panel-head"><div><span>OWNER INBOX</span><b>Actions needing approval</b></div><em>3 waiting</em></div>
-              {[
-                ["Publish customer storefront", "Sunrise Studio", "Review"],
-                ["Increase campaign budget", "$500 → $900", "Approve"],
-                ["Add production integration", "Support workspace", "Inspect"],
-              ].map((row) => <article key={row[0]}><div><b>{row[0]}</b><small>{row[1]}</small></div><button onClick={() => notify(`${row[2]} opened`)}>{row[2]}</button></article>)}
-            </section>
-            <section className="admin-panel admin-controls">
-              <div className="admin-panel-head"><div><span>PLATFORM CONTROLS</span><b>Manage Bizorvia</b></div></div>
-              <div>
-                {[
-                  ["Customers", "Accounts, access, plans and support", "♙"],
-                  ["Finance", "Revenue, invoices, refunds and taxes", "$"],
-                  ["Projects", "Apps, deployments, databases and domains", "◇"],
-                  ["Security", "Roles, audit logs, threats and secrets", "◇"],
-                  ["Agent Rules", "Permissions, limits and approvals", "✦"],
-                  ["System Settings", "Brand, email, billing and integrations", "⚙"],
-                ].map((item) => <button key={item[0]} onClick={() => notify(`${item[0]} controls opened`)}><span>{item[2]}</span><div><b>{item[0]}</b><small>{item[1]}</small></div><i>›</i></button>)}
-              </div>
-            </section>
-            <section className="admin-panel admin-activity">
-              <div className="admin-panel-head"><div><span>AUDIT TRAIL</span><b>Recent owner activity</b></div><button onClick={() => notify("Full audit log opened")}>View all</button></div>
-              {[
-                ["Payment plan updated", "Builder annual pricing", "2 min ago"],
-                ["Deployment approved", "Sunrise Studio v18", "12 min ago"],
-                ["Security rule changed", "Production publishing", "38 min ago"],
-                ["Customer access restored", "Account #BZ-1284", "1 hr ago"],
-              ].map((row) => <article key={row[0]}><i /><div><b>{row[0]}</b><small>{row[1]}</small></div><em>{row[2]}</em></article>)}
-            </section>
-          </div>
-        </div>
-      ) : section === "Everywhere" ? (
+      {section === "Everywhere" ? (
         <div className="everywhere-workspace">
           <div className="everywhere-hero">
             <div>
@@ -1918,7 +1928,13 @@ function PlatformView({
             <aside className="file-explorer">
               <div>
                 <b>EXPLORER</b>
-                <button onClick={() => notify("New file created")}>＋</button>
+                <button
+                  disabled
+                  title="This file tree is illustrative — creating files here isn't built yet"
+                  style={{ opacity: 0.5, cursor: "not-allowed" }}
+                >
+                  ＋
+                </button>
               </div>
               {[
                 ["▾", "app"],
@@ -2572,6 +2588,8 @@ function PlatformView({
             ].map((plan, i) => {
               const monthly = Number(plan[1]);
               const price = annual ? Math.round(monthly * 0.8) : monthly;
+              const planKey = (plan[0] as string).toLowerCase();
+              const disabledForAnnual = annual && i > 0;
               return (
                 <article
                   key={String(plan[0])}
@@ -2589,13 +2607,27 @@ function PlatformView({
                       <li key={x}>✓ {x}</li>
                     ))}
                   </ul>
-                  <button onClick={() => notify(`${plan[0]} checkout opened`)}>
-                    {i === 0 ? "Start free" : "Choose " + plan[0]}
+                  <button
+                    onClick={() => startCheckout(planKey)}
+                    disabled={checkoutLoadingPlan === planKey || disabledForAnnual}
+                    title={disabledForAnnual ? "Annual billing isn't wired up yet — switch to Monthly to subscribe" : undefined}
+                    style={disabledForAnnual ? { opacity: 0.5, cursor: "not-allowed" } : undefined}
+                  >
+                    {checkoutLoadingPlan === planKey
+                      ? "Redirecting…"
+                      : disabledForAnnual
+                        ? "Switch to Monthly"
+                        : i === 0
+                          ? "Start free"
+                          : "Choose " + plan[0]}
                   </button>
                 </article>
               );
             })}
           </div>
+          {checkoutError && (
+            <p style={{ color: "#ff8080", textAlign: "center", marginTop: 12 }}>{checkoutError}</p>
+          )}
           <div className="income-grid">
             <div>
               <span>RECURRING</span>
@@ -2637,8 +2669,12 @@ function PlatformView({
               visible rate, and target at least 70% blended gross margin before
               expanding free limits.
             </p>
-            <button onClick={() => notify("Revenue simulator opened")}>
-              Open revenue simulator →
+            <button
+              disabled
+              title="Revenue simulator isn't built yet"
+              style={{ opacity: 0.5, cursor: "not-allowed" }}
+            >
+              Open revenue simulator (coming soon) →
             </button>
           </div>
         </div>
@@ -2671,11 +2707,11 @@ function PlatformView({
                 <p>{legalPolicies[policy].summary}</p>
               </div>
               <button
-                onClick={() =>
-                  notify(`${legalPolicies[policy].title} editor opened`)
-                }
+                disabled
+                title="A policy editor isn't built yet — these drafts need attorney review before use regardless"
+                style={{ opacity: 0.5, cursor: "not-allowed" }}
               >
-                Edit policy
+                Edit policy (coming soon)
               </button>
             </div>
             <div className="legal-points">
@@ -2695,8 +2731,12 @@ function PlatformView({
                 registrar terms, cookie inventory, and DMCA agent. Then obtain
                 privacy, security, finance, and attorney approval.
               </p>
-              <button onClick={() => notify("Approval checklist opened")}>
-                Review checklist
+              <button
+                disabled
+                title="A tracked approval checklist isn't built yet — the items above are the real requirements"
+                style={{ opacity: 0.5, cursor: "not-allowed" }}
+              >
+                Review checklist (coming soon)
               </button>
             </div>
           </section>
