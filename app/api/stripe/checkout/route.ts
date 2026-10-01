@@ -53,6 +53,11 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ url: session.url });
   } catch (error) {
     console.error("Stripe checkout error:", error);
-    return NextResponse.json({ error: "Checkout failed" }, { status: 500 });
+    const e = error as { type?: string; code?: string; message?: string };
+    const detail = [e.type, e.code, e.message].filter(Boolean).join(" · ");
+    return NextResponse.json(
+      { error: detail ? `Checkout failed: ${detail}` : "Checkout failed" },
+      { status: 500 },
+    );
   }
 }
