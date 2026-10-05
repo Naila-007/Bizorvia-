@@ -33,6 +33,13 @@ export async function POST(req: NextRequest) {
       timeout: 8000,
     });
 
+    // Managed Payments (on by default on this Stripe account) requires every
+    // product to carry a Stripe Tax product_tax_code before it will process a
+    // session. Rather than guess a tax category here — getting it wrong could
+    // mean collecting the wrong sales tax — we opt this session out of
+    // Managed Payments, which restores the classic Checkout flow that doesn't
+    // require a tax code. Automatic tax collection can be turned on later as
+    // a deliberate choice, once the right product tax codes are set.
     const session = await stripe.checkout.sessions.create({
       mode: "subscription",
       customer_email: user.email,
@@ -48,7 +55,9 @@ export async function POST(req: NextRequest) {
       }],
       success_url: `https://bizorvia.com/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `https://bizorvia.com/pricing`,
-    });
+      managed_payments: { enabled: false },
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } as any);
 
     return NextResponse.json({ url: session.url });
   } catch (error) {
