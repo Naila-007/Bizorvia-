@@ -2,7 +2,7 @@
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/lib/supabase";
 
-import { FormEvent, useEffect, useMemo, useState } from "react";
+import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 
 type Step = { label: string; detail: string };
 
@@ -679,6 +679,36 @@ export default function Home() {
   const [aiLoading, setAiLoading] = useState(false);
   const [filesLoading, setFilesLoading] = useState(false);
   const [lastPrompt, setLastPrompt] = useState("");
+  const [attachedFiles, setAttachedFiles] = useState<{ name: string; size: number }[]>([]);
+  const [attaching, setAttaching] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [credits, setCredits] = useState<{ used: number; limit: number; remaining: number; plan: string } | null>(null);
+
+  useEffect(() => {
+    if (!user) {
+      setCredits(null);
+      return;
+    }
+    let cancelled = false;
+    (async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session || cancelled) return;
+      try {
+        const res = await fetch("/api/credits", {
+          headers: { Authorization: `Bearer ${session.access_token}` },
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!cancelled && res.ok && typeof data.limit === "number") {
+          setCredits({ used: data.used, limit: data.limit, remaining: data.remaining, plan: data.plan });
+        }
+      } catch {
+        // leave credits as null — the UI shows an honest "loading" state, never a fake number
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [user]);
 
   useEffect(() => {
     if (!running || paused || step >= taskSteps.length - 1) return;
@@ -733,17 +763,66 @@ export default function Home() {
     const finalPrompt = prompt.trim() ||
       "Research the software productivity market and create a launch strategy";
     if (!prompt.trim()) setPrompt(finalPrompt);
+    const promptWithContext = attachedFiles.length
+      ? `${finalPrompt}\n\n(Files attached to this task, stored in your workspace: ${attachedFiles
+          .map((f) => f.name)
+          .join(", ")})`
+      : finalPrompt;
     setStep(0);
     setPaused(false);
     setRunning(true);
     setTab("Live run");
     setLastPrompt(finalPrompt);
-    runRealAI(finalPrompt);
+    runRealAI(promptWithContext);
   }
 
   function notify(message: string) {
     setToast(message);
     window.setTimeout(() => setToast(""), 2400);
+  }
+
+  async function handleAttachFiles(fileList: FileList | null) {
+    if (!fileList || fileList.length === 0) return;
+    if (!user) {
+      notify("Sign in to attach files");
+      window.location.href = "/signup";
+      return;
+    }
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) {
+      notify("Sign in to attach files");
+      window.location.href = "/login";
+      return;
+    }
+    setAttaching(true);
+    for (const file of Array.from(fileList)) {
+      try {
+        const fd = new FormData();
+        fd.append("file", file);
+        const res = await fetch("/api/storage/upload", {
+          method: "POST",
+          headers: { Authorization: `Bearer ${session.access_token}` },
+          body: fd,
+        });
+        const data = await res.json().catch(() => ({}));
+        if (res.ok) {
+          setAttachedFiles((prev) => [
+            ...prev.filter((f) => f.name !== (data.name || file.name)),
+            { name: data.name || file.name, size: data.size ?? file.size },
+          ]);
+          notify(`✓ ${file.name} attached`);
+        } else {
+          notify(`✗ ${data.error || "Upload failed"}`);
+        }
+      } catch {
+        notify(`✗ Network error uploading ${file.name}`);
+      }
+    }
+    setAttaching(false);
+  }
+
+  function removeAttachedFile(name: string) {
+    setAttachedFiles((prev) => prev.filter((f) => f.name !== name));
   }
 
   function triggerDownload(filename: string, content: string, mime: string) {
@@ -886,15 +965,37 @@ export default function Home() {
           ))}
         </nav>
         <div className="sidebar-bottom">
-          <div className="credit">
-            <span>
-              <b>1,840</b> agent credits
-            </span>
-            <small>62% remaining</small>
-            <div>
-              <i />
+          {user ? (
+            <div className="credit">
+              {credits ? (
+                <>
+                  <span>
+                    <b>{credits.remaining}</b> agent credits
+                  </span>
+                  <small>
+                    {credits.limit > 0 ? Math.round((credits.remaining / credits.limit) * 100) : 0}% remaining · {credits.plan} plan
+                  </small>
+                  <div>
+                    <i
+                      style={{
+                        width: `${credits.limit > 0 ? Math.max(0, Math.min(100, Math.round((credits.remaining / credits.limit) * 100))) : 0}%`,
+                      }}
+                    />
+                  </div>
+                </>
+              ) : (
+                <>
+                  <span>
+                    <b>—</b> agent credits
+                  </span>
+                  <small>Loading usage…</small>
+                  <div>
+                    <i style={{ width: "0%" }} />
+                  </div>
+                </>
+              )}
             </div>
-          </div>
+          ) : null}
           {user ? (
             <button className="profile" onClick={signOut} title="Sign out">
               <span>{user.email?.slice(0,2).toUpperCase()}</span>
@@ -978,15 +1079,71 @@ export default function Home() {
                 placeholder="Describe a goal, attach files, or paste a link…"
                 aria-label="Describe your task"
               />
+              {attachedFiles.length > 0 ? (
+                <div
+                  style={{
+                    display: "flex",
+                    flexWrap: "wrap",
+                    gap: 8,
+                    padding: "0 4px 10px",
+                  }}
+                >
+                  {attachedFiles.map((f) => (
+                    <span
+                      key={f.name}
+                      style={{
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: 6,
+                        background: "#1a1a1a",
+                        border: "1px solid #2a2a2a",
+                        borderRadius: 20,
+                        padding: "4px 10px",
+                        fontSize: 12,
+                        color: "#ccc",
+                      }}
+                    >
+                      📎 {f.name}
+                      <button
+                        type="button"
+                        onClick={() => removeAttachedFile(f.name)}
+                        aria-label={`Remove ${f.name}`}
+                        style={{
+                          background: "none",
+                          border: "none",
+                          color: "#888",
+                          cursor: "pointer",
+                          fontSize: 13,
+                          lineHeight: 1,
+                          padding: 0,
+                        }}
+                      >
+                        ✕
+                      </button>
+                    </span>
+                  ))}
+                </div>
+              ) : null}
+              <input
+                ref={fileInputRef}
+                type="file"
+                multiple
+                style={{ display: "none" }}
+                onChange={(e) => {
+                  handleAttachFiles(e.target.files);
+                  e.target.value = "";
+                }}
+              />
               <div className="prompt-tools">
                 <div>
                   <button
                     type="button"
-                    disabled
-                    title="Attaching files to a task isn't built yet"
-                    style={{ opacity: 0.5, cursor: "not-allowed" }}
+                    disabled={attaching}
+                    title={attaching ? "Uploading…" : "Attach files to this task (stored in your workspace)"}
+                    onClick={() => fileInputRef.current?.click()}
+                    style={attaching ? { opacity: 0.5, cursor: "not-allowed" } : undefined}
                   >
-                    ＋
+                    {attaching ? "…" : "＋"}
                   </button>
                   <button
                     type="button"
