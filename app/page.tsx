@@ -39,6 +39,83 @@ const starterTasks = [
   },
 ];
 
+type Template = { icon: string; title: string; category: string; copy: string };
+
+const templateLibrary: Template[] = [
+  {
+    icon: "◎",
+    title: "Deep research",
+    category: "Research",
+    copy: "Compare 10 competitors and build a cited market brief.",
+  },
+  {
+    icon: "◇",
+    title: "Launch a business",
+    category: "Business",
+    copy: "Turn my idea into a branded, sellable, live business.",
+  },
+  {
+    icon: "▦",
+    title: "Analyze data",
+    category: "Data",
+    copy: "Clean my spreadsheet and create an executive dashboard.",
+  },
+  {
+    icon: "↻",
+    title: "Automate work",
+    category: "Automation",
+    copy: "Create a repeatable workflow with approvals and alerts.",
+  },
+  {
+    icon: "✦",
+    title: "Validate an idea",
+    category: "Research",
+    copy: "Research whether there is real demand for this business idea and who the target customer is.",
+  },
+  {
+    icon: "◈",
+    title: "Build a landing page",
+    category: "Business",
+    copy: "Design the copy and structure for a landing page with a hero, pricing section, and signup form.",
+  },
+  {
+    icon: "$",
+    title: "Write pricing page copy",
+    category: "Business",
+    copy: "Write pricing page copy for 3 subscription tiers aimed at small business owners.",
+  },
+  {
+    icon: "◌",
+    title: "Plan a launch campaign",
+    category: "Marketing",
+    copy: "Plan a 2-week product launch campaign across email and social media, with a daily posting plan.",
+  },
+  {
+    icon: "↗",
+    title: "Write a cold outreach sequence",
+    category: "Marketing",
+    copy: "Write a 4-email cold outreach sequence to reach potential customers for my business.",
+  },
+  {
+    icon: "§",
+    title: "Draft a privacy policy",
+    category: "Legal",
+    copy: "Draft a plain-English privacy policy and terms of service for my product.",
+  },
+  {
+    icon: "▧",
+    title: "Design a database schema",
+    category: "Data",
+    copy: "Design a database schema for a subscription product with users, plans, and billing history.",
+  },
+  {
+    icon: "♙",
+    title: "Write a hiring plan",
+    category: "Automation",
+    copy: "Write a job post and interview questions to hire a part-time marketer for my business.",
+  },
+];
+
 const cloudModules = [
   {
     icon: "✦",
@@ -683,6 +760,8 @@ export default function Home() {
   const [attaching, setAttaching] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [credits, setCredits] = useState<{ used: number; limit: number; remaining: number; plan: string } | null>(null);
+  const [showTemplates, setShowTemplates] = useState(false);
+  const [templateQuery, setTemplateQuery] = useState("");
 
   useEffect(() => {
     if (!user) {
@@ -720,6 +799,23 @@ export default function Home() {
     () => Math.round(((step + 1) / taskSteps.length) * 100),
     [step],
   );
+
+  const filteredTemplates = useMemo(() => {
+    const q = templateQuery.trim().toLowerCase();
+    if (!q) return templateLibrary;
+    return templateLibrary.filter(
+      (t) =>
+        t.title.toLowerCase().includes(q) ||
+        t.category.toLowerCase().includes(q) ||
+        t.copy.toLowerCase().includes(q),
+    );
+  }, [templateQuery]);
+
+  function selectTemplate(t: Template) {
+    setPrompt(t.copy);
+    setShowTemplates(false);
+    notify(`"${t.title}" loaded into the prompt box`);
+  }
 
   async function runRealAI(taskPrompt: string) {
     setAiResult("");
@@ -1179,11 +1275,13 @@ export default function Home() {
             <div className="section-title">
               <h2>Start with a superpower</h2>
               <button
-                disabled
-                title="A browsable template library isn't built yet — the 4 starter cards below are what's available today"
-                style={{ opacity: 0.5, cursor: "not-allowed" }}
+                type="button"
+                onClick={() => {
+                  setTemplateQuery("");
+                  setShowTemplates(true);
+                }}
               >
-                Browse templates (coming soon) →
+                Browse templates →
               </button>
             </div>
             <div className="starter-grid">
@@ -1205,6 +1303,129 @@ export default function Home() {
                 </button>
               ))}
             </div>
+            {showTemplates ? (
+              <div
+                role="dialog"
+                aria-modal="true"
+                aria-label="Browse templates"
+                onClick={() => setShowTemplates(false)}
+                style={{
+                  position: "fixed",
+                  inset: 0,
+                  background: "#18201ac0",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  padding: 24,
+                  zIndex: 1000,
+                }}
+              >
+                <div
+                  onClick={(e) => e.stopPropagation()}
+                  style={{
+                    background: "#fff",
+                    borderRadius: 16,
+                    width: "100%",
+                    maxWidth: 640,
+                    maxHeight: "80vh",
+                    display: "flex",
+                    flexDirection: "column",
+                    overflow: "hidden",
+                    boxShadow: "0 24px 60px #0000004d",
+                  }}
+                >
+                  <div
+                    style={{
+                      padding: "18px 22px",
+                      borderBottom: "1px solid #edf0ed",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                      gap: 12,
+                    }}
+                  >
+                    <b style={{ fontSize: 14 }}>Browse templates</b>
+                    <button
+                      type="button"
+                      onClick={() => setShowTemplates(false)}
+                      aria-label="Close"
+                      style={{ border: 0, background: "none", cursor: "pointer", fontSize: 16, color: "#78827a" }}
+                    >
+                      ✕
+                    </button>
+                  </div>
+                  <div style={{ padding: "14px 22px 0" }}>
+                    <input
+                      autoFocus
+                      value={templateQuery}
+                      onChange={(e) => setTemplateQuery(e.target.value)}
+                      placeholder="Search templates — e.g. marketing, data, legal…"
+                      aria-label="Search templates"
+                      style={{
+                        width: "100%",
+                        boxSizing: "border-box",
+                        padding: "10px 14px",
+                        borderRadius: 9,
+                        border: "1px solid var(--line)",
+                        fontSize: 13,
+                        outline: "none",
+                      }}
+                    />
+                  </div>
+                  <div style={{ padding: 18, overflowY: "auto", display: "grid", gap: 8 }}>
+                    {filteredTemplates.length === 0 ? (
+                      <p style={{ color: "var(--muted)", fontSize: 13, textAlign: "center", padding: "20px 0" }}>
+                        No templates match &ldquo;{templateQuery}&rdquo;.
+                      </p>
+                    ) : (
+                      filteredTemplates.map((t) => (
+                        <button
+                          key={t.title}
+                          type="button"
+                          onClick={() => selectTemplate(t)}
+                          style={{
+                            display: "flex",
+                            alignItems: "flex-start",
+                            gap: 12,
+                            textAlign: "left",
+                            border: "1px solid var(--line)",
+                            background: "#fff",
+                            borderRadius: 11,
+                            padding: "12px 14px",
+                            cursor: "pointer",
+                          }}
+                        >
+                          <span
+                            style={{
+                              display: "grid",
+                              placeItems: "center",
+                              width: 30,
+                              height: 30,
+                              background: "#eff5ef",
+                              borderRadius: 8,
+                              color: "#32563e",
+                              fontSize: 15,
+                              flex: "none",
+                            }}
+                          >
+                            {t.icon}
+                          </span>
+                          <span style={{ display: "grid", gap: 3 }}>
+                            <span style={{ display: "flex", gap: 8, alignItems: "baseline" }}>
+                              <b style={{ fontSize: 12 }}>{t.title}</b>
+                              <small style={{ fontSize: 9, color: "#8a938c", textTransform: "uppercase", letterSpacing: 0.5 }}>
+                                {t.category}
+                              </small>
+                            </span>
+                            <span style={{ fontSize: 11, color: "var(--muted)", lineHeight: 1.5 }}>{t.copy}</span>
+                          </span>
+                        </button>
+                      ))
+                    )}
+                  </div>
+                </div>
+              </div>
+            ) : null}
             <div className="capability-strip">
               <span className="pulse-orb" />
               <div>
