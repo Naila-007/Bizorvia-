@@ -1928,6 +1928,164 @@ function PlatformView({
   const [showChecklist, setShowChecklist] = useState(false);
   const [checklistDone, setChecklistDone] = useState<Set<number>>(new Set());
 
+  // Code Studio — real files, backed by the same Supabase Storage bucket
+  // used by Attach files / the Storage page. Not a git-connected IDE: one
+  // file open at a time, no in-browser code execution.
+  const CODE_EXTENSIONS = ["ts", "tsx", "js", "jsx", "json", "md", "txt", "css", "html", "py", "sql", "yaml", "yml"];
+  function isCodeFile(name: string) {
+    const ext = name.split(".").pop()?.toLowerCase();
+    return !!ext && CODE_EXTENSIONS.includes(ext);
+  }
+  const [studioFiles, setStudioFiles] = useState<{ name: string; size: number }[]>([]);
+  const [activeFile, setActiveFile] = useState<string | null>(null);
+  const [lastSavedCode, setLastSavedCode] = useState("");
+  const [studioLoadingList, setStudioLoadingList] = useState(false);
+  const [studioOpening, setStudioOpening] = useState(false);
+  const [studioSaving, setStudioSaving] = useState(false);
+  const [studioError, setStudioError] = useState("");
+
+  async function loadStudioFiles() {
+    if (!user) {
+      setStudioFiles([]);
+      return;
+    }
+    setStudioLoadingList(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return;
+      const res = await fetch("/api/storage", { headers: { Authorization: `Bearer ${session.access_token}` } });
+      if (res.ok) {
+        const d = await res.json().catch(() => ({}));
+        const files = Array.isArray(d.files) ? d.files.filter((f: { name: string }) => isCodeFile(f.name)) : [];
+        setStudioFiles(files);
+      }
+    } catch {
+      // leave the current list as-is — honest loading state covers the gap
+    } finally {
+      setStudioLoadingList(false);
+    }
+  }
+
+  useEffect(() => {
+    if (section === "Code Studio") loadStudioFiles();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user, section]);
+
+  async function openStudioFile(name: string) {
+    setStudioError("");
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) {
+      setStudioError("Sign in to open your files.");
+      return;
+    }
+    setStudioOpening(true);
+    try {
+      const res = await fetch("/api/storage/download", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${session.access_token}` },
+        body: JSON.stringify({ filename: name }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (res.ok && data.url) {
+        const fileRes = await fetch(data.url);
+        const text = await fileRes.text();
+        setCode(text);
+        setLastSavedCode(text);
+        setActiveFile(name);
+      } else {
+        setStudioError(data.error || "Couldn't open that file.");
+      }
+    } catch {
+      setStudioError("Network error opening that file.");
+    } finally {
+      setStudioOpening(false);
+    }
+  }
+
+  async function newStudioFile() {
+    if (!user) {
+      notify("Sign in to create files");
+      return;
+    }
+    const name = window.prompt("New file name (e.g. notes.md, script.ts):");
+    if (!name) return;
+    const trimmed = name.trim();
+    if (!isCodeFile(trimmed)) {
+      setStudioError("Use a text extension like .ts, .md, .txt, .json, .py, .css, .sql");
+      return;
+    }
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) return;
+    setStudioSaving(true);
+    setStudioError("");
+    try {
+      const fd = new FormData();
+      fd.append("file", new File([""], trimmed, { type: "text/plain" }));
+      const res = await fetch("/api/storage/upload", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${session.access_token}` },
+        body: fd,
+      });
+      const data = await res.json().catch(() => ({}));
+      if (res.ok) {
+        notify(`✓ ${data.name || trimmed} created`);
+        setCode("");
+        setLastSavedCode("");
+        setActiveFile(data.name || trimmed);
+        await loadStudioFiles();
+      } else {
+        setStudioError(data.error || "Couldn't create that file.");
+      }
+    } catch {
+      setStudioError("Network error creating that file.");
+    } finally {
+      setStudioSaving(false);
+    }
+  }
+
+  async function saveStudioFile() {
+    if (!user) {
+      notify("Sign in to save files");
+      return;
+    }
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) return;
+    let name = activeFile;
+    if (!name) {
+      const entered = window.prompt("Save as (e.g. notes.md, script.ts):");
+      if (!entered) return;
+      if (!isCodeFile(entered.trim())) {
+        setStudioError("Use a text extension like .ts, .md, .txt, .json, .py, .css, .sql");
+        return;
+      }
+      name = entered.trim();
+    }
+    setStudioSaving(true);
+    setStudioError("");
+    try {
+      const fd = new FormData();
+      fd.append("file", new File([code], name, { type: "text/plain" }));
+      const res = await fetch("/api/storage/upload", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${session.access_token}` },
+        body: fd,
+      });
+      const data = await res.json().catch(() => ({}));
+      if (res.ok) {
+        setActiveFile(data.name || name);
+        setLastSavedCode(code);
+        notify(`✓ Saved ${data.name || name}`);
+        await loadStudioFiles();
+      } else {
+        setStudioError(data.error || "Couldn't save that file.");
+      }
+    } catch {
+      setStudioError("Network error saving that file.");
+    } finally {
+      setStudioSaving(false);
+    }
+  }
+
   useEffect(() => {
     setEditingPolicy(false);
   }, [policy]);
@@ -2415,11 +2573,20 @@ function PlatformView({
               <em>main</em>
             </div>
             <div className="ide-actions">
-              <button disabled style={{ opacity: 0.5, cursor: "not-allowed" }}>
-                ⌘ Coming soon
+              <button
+                onClick={saveStudioFile}
+                disabled={!user || studioSaving}
+                title={!user ? "Sign in to save files" : "Save the open file to your Bizorvia storage"}
+                style={!user ? { opacity: 0.5, cursor: "not-allowed" } : undefined}
+              >
+                {studioSaving ? "Saving…" : "⌘ Save"}
               </button>
-              <button disabled style={{ opacity: 0.5, cursor: "not-allowed" }}>
-                ▷ Coming soon
+              <button
+                disabled
+                title="Running code in-browser isn't built yet — download the file and run it locally, or deploy real changes from the Projects page"
+                style={{ opacity: 0.5, cursor: "not-allowed" }}
+              >
+                ▷ Run (soon)
               </button>
               <button
                 className="ide-primary"
@@ -2434,51 +2601,61 @@ function PlatformView({
           <div className="ide-shell">
             <aside className="file-explorer">
               <div>
-                <b>EXPLORER</b>
+                <b>YOUR FILES</b>
                 <button
-                  disabled
-                  title="This file tree is illustrative — creating files here isn't built yet"
-                  style={{ opacity: 0.5, cursor: "not-allowed" }}
+                  onClick={newStudioFile}
+                  disabled={!user}
+                  title={user ? "Create a new file in your storage" : "Sign in to create files"}
+                  style={!user ? { opacity: 0.5, cursor: "not-allowed" } : undefined}
                 >
                   ＋
                 </button>
               </div>
-              {[
-                ["▾", "app"],
-                ["  ◇", "page.tsx"],
-                ["  #", "globals.css"],
-                ["▾", "agents"],
-                ["  ✦", "business-factory.ts"],
-                ["  ✦", "marketing-agent.ts"],
-                ["▸", "database"],
-                ["▸", "workflows"],
-                ["{}", "package.json"],
-                ["◎", "README.md"],
-              ].map((file, i) => (
+              {!user ? (
+                <p style={{ fontSize: 12, color: "#666", padding: "10px 12px" }}>
+                  Sign in to see and create your real files here.
+                </p>
+              ) : studioLoadingList ? (
+                <p style={{ fontSize: 12, color: "#666", padding: "10px 12px" }}>Loading your files…</p>
+              ) : studioFiles.length === 0 ? (
+                <p style={{ fontSize: 12, color: "#666", padding: "10px 12px" }}>
+                  No files yet — click ＋ to create one.
+                </p>
+              ) : (
+                studioFiles.map((f) => (
+                  <button
+                    key={f.name}
+                    className={activeFile === f.name ? "active" : ""}
+                    onClick={() => openStudioFile(f.name)}
+                    disabled={studioOpening}
+                    title={`Open ${f.name}`}
+                  >
+                    <span>◇</span>
+                    {f.name}
+                    {activeFile === f.name && <em>open</em>}
+                  </button>
+                ))
+              )}
+              {studioError && (
+                <p style={{ fontSize: 11, color: "#ff8080", padding: "6px 12px" }}>{studioError}</p>
+              )}
+              {user && (
                 <button
-                  key={i}
-                  className={
-                    i === 4 ? "active" : i === 0 || i === 3 ? "folder" : ""
-                  }
-                  disabled
-                  title="This file tree is illustrative — browsing files isn't built yet"
-                  style={{ opacity: i === 4 ? 1 : 0.5, cursor: "not-allowed" }}
+                  onClick={() => (window.location.href = "/storage")}
+                  style={{ fontSize: 11, color: "#818a83", padding: "8px 12px", textAlign: "left" }}
                 >
-                  <span>{file[0]}</span>
-                  {file[1]}
-                  {i === 4 && <em>M</em>}
+                  Manage all files in Storage →
                 </button>
-              ))}
+              )}
             </aside>
             <section className="code-editor">
               <div className="editor-title">
                 <span>
-                  business-factory.ts <i>●</i>
+                  {activeFile || "Untitled — not saved yet"} {code !== lastSavedCode && <i>●</i>}
                 </span>
-                <span>marketing-agent.ts</span>
                 <button
                   disabled
-                  title="Opening additional tabs isn't built yet"
+                  title="This editor shows one open file at a time — multiple tabs aren't built yet"
                   style={{ opacity: 0.5, cursor: "not-allowed" }}
                 >
                   ＋
