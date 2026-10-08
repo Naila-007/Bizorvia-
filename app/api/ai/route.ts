@@ -66,18 +66,50 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  let body: { prompt?: string; model?: string };
+  let body: { prompt?: string; model?: string; deepResearch?: boolean };
   try { body = await req.json(); } catch { return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 }); }
 
-  const { prompt, model = 'claude' } = body;
+  const { prompt, model = 'claude', deepResearch = false } = body;
   if (!prompt) return NextResponse.json({ error: 'Prompt is required' }, { status: 400 });
 
-  const cleanPrompt = sanitize(prompt);
+  const cleanPrompt = deepResearch
+    ? `${sanitize(prompt)}\n\nDo real, thorough research for this: search multiple sources, compare what you find, and note where sources agree or disagree before giving your answer.`
+    : sanitize(prompt);
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 30000);
+  const timeout = setTimeout(() => controller.abort(), deepResearch ? 55000 : 40000);
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  async function callAnthropic(withSearch: boolean): Promise<any> {
+    const reqBody: Record<string, unknown> = {
+      model: 'claude-sonnet-4-6',
+      max_tokens: withSearch ? (deepResearch ? 2500 : 1500) : 1000,
+      messages: [{ role: 'user', content: cleanPrompt }],
+    };
+    if (withSearch) {
+      // Real, server-side web search — Claude decides if/when to search and
+      // returns genuine citations (url, title, quoted text) tied to its
+      // search results. Deep research mode allows more searches so it can
+      // actually compare multiple sources, capped to bound cost either way.
+      reqBody.tools = [{ type: 'web_search_20250305', name: 'web_search', max_uses: deepResearch ? 6 : 3 }];
+    }
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-api-key': process.env.ANTHROPIC_API_KEY!, 'anthropic-version': '2023-06-01' },
+      signal: controller.signal,
+      body: JSON.stringify(reqBody),
+    });
+    const data = await res.json();
+    if (!res.ok || data?.error) {
+      throw new Error(data?.error?.message || `Anthropic API error (${res.status})`);
+    }
+    return data;
+  }
 
   try {
     let result = '';
+    type Citation = { url: string; title: string; quote: string };
+    let citations: Citation[] = [];
+
     if (model === 'deepseek' && process.env.DEEPSEEK_API_KEY) {
       const res = await fetch('https://api.deepseek.com/chat/completions', {
         method: 'POST',
@@ -88,14 +120,34 @@ export async function POST(req: NextRequest) {
       const data = await res.json();
       result = data.choices?.[0]?.message?.content || '';
     } else {
-      const res = await fetch('https://api.anthropic.com/v1/messages', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'x-api-key': process.env.ANTHROPIC_API_KEY!, 'anthropic-version': '2023-06-01' },
-        signal: controller.signal,
-        body: JSON.stringify({ model: 'claude-sonnet-4-6', max_tokens: 1000, messages: [{ role: 'user', content: cleanPrompt }] }),
-      });
-      const data = await res.json();
-      result = data.content?.[0]?.text || '';
+      // Try with real web search first; if it's unavailable on this account
+      // or plan, fall back to a plain answer so the core AI feature never breaks.
+      let data;
+      try {
+        data = await callAnthropic(true);
+      } catch {
+        data = await callAnthropic(false);
+      }
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const blocks: any[] = Array.isArray(data.content) ? data.content : [];
+      for (const block of blocks) {
+        if (block.type === 'text') {
+          result += block.text;
+          if (Array.isArray(block.citations)) {
+            for (const c of block.citations) {
+              if (c?.url) {
+                citations.push({ url: c.url, title: c.title || c.url, quote: c.cited_text || '' });
+              }
+            }
+          }
+        }
+      }
+      const seen = new Set<string>();
+      citations = citations.filter((c) => {
+        if (seen.has(c.url)) return false;
+        seen.add(c.url);
+        return true;
+      }).slice(0, 8);
     }
     clearTimeout(timeout);
 
@@ -106,6 +158,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({
       result,
+      citations,
       credits: { used: creditsUsed + 1, limit: creditLimit, remaining: creditLimit - creditsUsed - 1 }
     });
   } catch (err: any) {

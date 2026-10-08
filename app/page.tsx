@@ -339,6 +339,23 @@ const launchSystems = [
   },
 ];
 
+const PUBLISH_CHECKLIST = [
+  "Effective date set",
+  "Legal contact listed",
+  "Security contact listed",
+  "Business address confirmed",
+  "Refund window defined",
+  "Governing venue defined",
+  "Provider list complete",
+  "Registrar terms reviewed",
+  "Cookie inventory current",
+  "DMCA agent registered",
+  "Privacy approval obtained",
+  "Security approval obtained",
+  "Finance approval obtained",
+  "Attorney approval obtained",
+];
+
 const legalPolicies = [
   {
     title: "Terms of Service",
@@ -754,6 +771,8 @@ export default function Home() {
   const [aiResult, setAiResult] = useState("");
   const [aiError, setAiError] = useState("");
   const [aiLoading, setAiLoading] = useState(false);
+  const [aiCitations, setAiCitations] = useState<{ url: string; title: string; quote: string }[]>([]);
+  const [deepResearch, setDeepResearch] = useState(false);
   const [filesLoading, setFilesLoading] = useState(false);
   const [lastPrompt, setLastPrompt] = useState("");
   const [attachedFiles, setAttachedFiles] = useState<{ name: string; size: number }[]>([]);
@@ -820,6 +839,7 @@ export default function Home() {
   async function runRealAI(taskPrompt: string) {
     setAiResult("");
     setAiError("");
+    setAiCitations([]);
     if (!user) {
       setAiError("Sign in to run real AI research — this preview is scripted until then.");
       return;
@@ -838,12 +858,16 @@ export default function Home() {
           Authorization: `Bearer ${session.access_token}`,
         },
         body: JSON.stringify({
-          prompt: `You are helping a founder plan a business. Give a concise, real, useful answer (under 200 words) to this request: ${taskPrompt}`,
+          prompt: deepResearch
+            ? `You are helping a founder plan a business. Give a thorough, well-researched answer (under 400 words) to this request, comparing multiple real sources: ${taskPrompt}`
+            : `You are helping a founder plan a business. Give a concise, real, useful answer (under 200 words) to this request: ${taskPrompt}`,
+          deepResearch,
         }),
       });
       const data = await res.json().catch(() => ({}));
       if (res.ok && data.result) {
         setAiResult(data.result);
+        setAiCitations(Array.isArray(data.citations) ? data.citations : []);
       } else {
         setAiError(data.error || "AI isn't configured on this deployment yet — showing the scripted preview instead.");
       }
@@ -931,6 +955,14 @@ export default function Home() {
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
+  }
+
+  function hostnameOf(url: string) {
+    try {
+      return new URL(url).hostname;
+    } catch {
+      return url;
+    }
   }
 
   function downloadPlan() {
@@ -1243,11 +1275,18 @@ export default function Home() {
                   </button>
                   <button
                     type="button"
-                    disabled
-                    title="Deep research mode isn't built yet"
-                    style={{ opacity: 0.5, cursor: "not-allowed" }}
+                    onClick={() => {
+                      setDeepResearch((v) => !v);
+                      notify(deepResearch ? "Deep research off" : "Deep research on — more sources, longer answer");
+                    }}
+                    title={deepResearch ? "Deep research is on — turn off" : "Turn on deep research: more real web searches, a longer comparison-based answer"}
+                    style={
+                      deepResearch
+                        ? { background: "#1a241d", color: "#fff", borderColor: "#1a241d" }
+                        : undefined
+                    }
                   >
-                    ◎ Deep research (soon)
+                    ◎ Deep research{deepResearch ? " (on)" : ""}
                   </button>
                   <button
                     type="button"
@@ -1694,40 +1733,42 @@ export default function Home() {
               <div className="panel-view">
                 <div className="panel-heading">
                   <div>
-                    <h2>Research intelligence · ROADMAP PREVIEW</h2>
+                    <h2>Source citations</h2>
                     <p>
-                      {aiResult
-                        ? "Your task above generated real AI content — source citation tracking for that content isn't built yet."
-                        : "Run a task above to generate real content. Source citation tracking isn't built yet."}
+                      {!aiResult
+                        ? "Run a task above to generate content — any real web sources the AI cites will appear here."
+                        : aiCitations.length > 0
+                          ? `${aiCitations.length} real source${aiCitations.length === 1 ? "" : "s"} cited in the response above.`
+                          : "This response didn't cite any outside sources — the AI answered from its own knowledge."}
                     </p>
                   </div>
-                  <button
-                    disabled
-                    title="Citation tracking isn't built yet"
-                    style={{ opacity: 0.5, cursor: "not-allowed" }}
-                  >
-                    View citations (coming soon)
-                  </button>
                 </div>
                 <div className="insight-grid">
-                  <article>
-                    <span>EXAMPLE · KEY INSIGHT</span>
-                    <h3>Trust is the strongest differentiator</h3>
-                    <p>
-                      Users want autonomous execution, but adoption rises when
-                      decisions, sources, and permissions remain visible.
+                  {aiCitations.length > 0 ? (
+                    aiCitations.map((c, i) => (
+                      <article key={`${c.url}-${i}`}>
+                        <span>SOURCE {i + 1}</span>
+                        <h3>
+                          <a
+                            href={c.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            style={{ color: "inherit", textDecoration: "none" }}
+                          >
+                            {c.title}
+                          </a>
+                        </h3>
+                        {c.quote ? <p>&ldquo;{c.quote}&rdquo;</p> : null}
+                        <small>{hostnameOf(c.url)}</small>
+                      </article>
+                    ))
+                  ) : (
+                    <p style={{ color: "#666", padding: "24px 4px", gridColumn: "1 / -1" }}>
+                      {!aiResult
+                        ? "Run this task above to generate content — real sources will appear here."
+                        : "No cited sources for this response."}
                     </p>
-                    <small>Example only — not tracked yet</small>
-                  </article>
-                  <article>
-                    <span>EXAMPLE · MARKET SIGNAL</span>
-                    <h3>Teams want reusable workflows</h3>
-                    <p>
-                      The next wave is moving from one-off prompts toward
-                      repeatable, governed automations shared across teams.
-                    </p>
-                    <small>Example only — not tracked yet</small>
-                  </article>
+                  )}
                 </div>
               </div>
             )}
@@ -1825,6 +1866,46 @@ function PlatformView({
   const [checkoutLoadingPlan, setCheckoutLoadingPlan] = useState<string | null>(null);
   const [checkoutError, setCheckoutError] = useState("");
   const { user } = useAuth();
+  const [showRevenueSim, setShowRevenueSim] = useState(false);
+  const [simCounts, setSimCounts] = useState({ builder: 10, business: 3, scale: 1 });
+  const [editingPolicy, setEditingPolicy] = useState(false);
+  const [policyDraft, setPolicyDraft] = useState("");
+  const [showChecklist, setShowChecklist] = useState(false);
+  const [checklistDone, setChecklistDone] = useState<Set<number>>(new Set());
+
+  useEffect(() => {
+    setEditingPolicy(false);
+  }, [policy]);
+
+  function startPolicyEdit() {
+    const p = legalPolicies[policy];
+    setPolicyDraft(
+      `# ${p.title}\n\n${p.summary}\n\n${p.points.map((pt) => `- ${pt}`).join("\n")}\n`,
+    );
+    setEditingPolicy(true);
+  }
+
+  function downloadPolicyDraft() {
+    const blob = new Blob([policyDraft], { type: "text/markdown" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${legalPolicies[policy].title.toLowerCase().replace(/\s+/g, "-")}-draft.md`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    notify("Draft downloaded — still needs attorney review before use");
+  }
+
+  function toggleChecklistItem(i: number) {
+    setChecklistDone((prev) => {
+      const next = new Set(prev);
+      if (next.has(i)) next.delete(i);
+      else next.add(i);
+      return next;
+    });
+  }
 
   async function startCheckout(planKey: string) {
     setCheckoutError("");
@@ -3041,13 +3122,65 @@ function PlatformView({
               visible rate, and target at least 70% blended gross margin before
               expanding free limits.
             </p>
-            <button
-              disabled
-              title="Revenue simulator isn't built yet"
-              style={{ opacity: 0.5, cursor: "not-allowed" }}
-            >
-              Open revenue simulator (coming soon) →
+            <button onClick={() => setShowRevenueSim((v) => !v)}>
+              {showRevenueSim ? "Close revenue simulator" : "Open revenue simulator"} →
             </button>
+            {showRevenueSim ? (
+              (() => {
+                const mrr = simCounts.builder * 39 + simCounts.business * 129 + simCounts.scale * 399;
+                const arr = mrr * 12;
+                const targetMargin = 0.7;
+                return (
+                  <div style={{ marginTop: 14, display: "grid", gap: 14 }}>
+                    <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 10 }}>
+                      {([
+                        ["builder", "Builder · $39/mo"],
+                        ["business", "Business · $129/mo"],
+                        ["scale", "Scale · $399/mo"],
+                      ] as const).map(([key, label]) => (
+                        <label key={key} style={{ display: "grid", gap: 4, fontSize: 11, color: "var(--muted)" }}>
+                          {label}
+                          <input
+                            type="number"
+                            min={0}
+                            value={simCounts[key]}
+                            onChange={(e) =>
+                              setSimCounts((prev) => ({
+                                ...prev,
+                                [key]: Math.max(0, Number(e.target.value) || 0),
+                              }))
+                            }
+                            style={{
+                              padding: "8px 10px",
+                              borderRadius: 8,
+                              border: "1px solid var(--line)",
+                              fontSize: 13,
+                            }}
+                          />
+                        </label>
+                      ))}
+                    </div>
+                    <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 10 }}>
+                      <div>
+                        <div style={{ fontSize: 10, color: "var(--muted)" }}>MRR</div>
+                        <div style={{ fontSize: 20, fontWeight: 700 }}>${mrr.toLocaleString()}</div>
+                      </div>
+                      <div>
+                        <div style={{ fontSize: 10, color: "var(--muted)" }}>ARR</div>
+                        <div style={{ fontSize: 20, fontWeight: 700 }}>${arr.toLocaleString()}</div>
+                      </div>
+                      <div>
+                        <div style={{ fontSize: 10, color: "var(--muted)" }}>Gross profit target (70%)</div>
+                        <div style={{ fontSize: 20, fontWeight: 700 }}>${Math.round(mrr * targetMargin).toLocaleString()}/mo</div>
+                      </div>
+                    </div>
+                    <p style={{ fontSize: 10, color: "var(--muted)", margin: 0 }}>
+                      Calculated from the real plan prices above. This doesn&rsquo;t pull your actual subscriber counts yet — enter numbers to model a scenario.
+                    </p>
+                  </div>
+                );
+              })()
+            ) : null}
           </div>
         </div>
       ) : section === "Legal" ? (
@@ -3079,22 +3212,46 @@ function PlatformView({
                 <p>{legalPolicies[policy].summary}</p>
               </div>
               <button
-                disabled
-                title="A policy editor isn't built yet — these drafts need attorney review before use regardless"
-                style={{ opacity: 0.5, cursor: "not-allowed" }}
+                onClick={() => (editingPolicy ? setEditingPolicy(false) : startPolicyEdit())}
+                title="Edit this draft's text and download it as markdown — still needs attorney review before use"
               >
-                Edit policy (coming soon)
+                {editingPolicy ? "Close editor" : "Edit policy"}
               </button>
             </div>
-            <div className="legal-points">
-              {legalPolicies[policy].points.map((point, i) => (
-                <article key={point}>
-                  <span>0{i + 1}</span>
-                  <p>{point}</p>
-                  <em>Required</em>
-                </article>
-              ))}
-            </div>
+            {editingPolicy ? (
+              <div style={{ padding: "0 0 16px" }}>
+                <textarea
+                  value={policyDraft}
+                  onChange={(e) => setPolicyDraft(e.target.value)}
+                  style={{
+                    width: "100%",
+                    minHeight: 220,
+                    boxSizing: "border-box",
+                    fontFamily: "ui-monospace, SFMono-Regular, Menlo, monospace",
+                    fontSize: 12,
+                    lineHeight: 1.6,
+                    padding: 14,
+                    borderRadius: 10,
+                    border: "1px solid var(--line)",
+                    resize: "vertical",
+                  }}
+                />
+                <div style={{ display: "flex", gap: 8, marginTop: 10 }}>
+                  <button onClick={downloadPolicyDraft}>Download draft (.md)</button>
+                  <button onClick={() => setEditingPolicy(false)}>Cancel</button>
+                </div>
+              </div>
+            ) : (
+              <div className="legal-points">
+                {legalPolicies[policy].points.map((point, i) => (
+                  <article key={point}>
+                    <span>0{i + 1}</span>
+                    <p>{point}</p>
+                    <em>Required</em>
+                  </article>
+                ))}
+              </div>
+            )}
             <div className="publish-check">
               <span>BEFORE PUBLISHING</span>
               <p>
@@ -3103,13 +3260,34 @@ function PlatformView({
                 registrar terms, cookie inventory, and DMCA agent. Then obtain
                 privacy, security, finance, and attorney approval.
               </p>
-              <button
-                disabled
-                title="A tracked approval checklist isn't built yet — the items above are the real requirements"
-                style={{ opacity: 0.5, cursor: "not-allowed" }}
-              >
-                Review checklist (coming soon)
+              <button onClick={() => setShowChecklist((v) => !v)}>
+                {showChecklist ? "Hide checklist" : "Review checklist"} ({checklistDone.size}/{PUBLISH_CHECKLIST.length})
               </button>
+              {showChecklist ? (
+                <div style={{ display: "grid", gap: 6, marginTop: 12 }}>
+                  {PUBLISH_CHECKLIST.map((item, i) => (
+                    <label
+                      key={item}
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 8,
+                        fontSize: 12,
+                        color: checklistDone.has(i) ? "#4b773f" : "var(--ink)",
+                        textDecoration: checklistDone.has(i) ? "line-through" : "none",
+                        cursor: "pointer",
+                      }}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={checklistDone.has(i)}
+                        onChange={() => toggleChecklistItem(i)}
+                      />
+                      {item}
+                    </label>
+                  ))}
+                </div>
+              ) : null}
             </div>
           </section>
         </div>
