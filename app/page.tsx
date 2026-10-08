@@ -588,7 +588,7 @@ const platformContent: Record<
     action: "Create project",
     stats: [
       ["7", "Projects"],
-      ["3", "Live apps"],
+      ["Not tracked", "Live apps"],
       ["99.99%", "Uptime"],
     ],
   },
@@ -609,9 +609,9 @@ const platformContent: Record<
     copy: "Automatic preview links, production deployments, edge delivery, logs, analytics, and one-click rollback.",
     action: "New deployment",
     stats: [
-      ["42", "Deployments"],
+      ["Not tracked", "Deployments"],
       ["184 ms", "Global latency"],
-      ["0", "Build errors"],
+      ["Not tracked", "Build errors"],
     ],
   },
   Database: {
@@ -620,9 +620,9 @@ const platformContent: Record<
     copy: "Postgres-compatible data, a friendly table editor, SQL tools, authentication, storage, realtime, and instant APIs.",
     action: "Create table",
     stats: [
-      ["12", "Tables"],
-      ["84.2k", "Rows"],
-      ["2.1 GB", "Storage"],
+      ["Not tracked", "Tables"],
+      ["Not tracked", "Rows"],
+      ["Not tracked", "Storage"],
     ],
   },
   Payments: {
@@ -631,9 +631,9 @@ const platformContent: Record<
     copy: "Create checkout pages, payment links, plans, invoices, taxes, coupons, and a branded customer portal.",
     action: "Create payment link",
     stats: [
-      ["$18,420", "Revenue"],
-      ["1,284", "Customers"],
-      ["96.8%", "Success rate"],
+      ["Not tracked", "Revenue"],
+      ["Not tracked", "Customers"],
+      ["Not tracked", "Success rate"],
     ],
   },
   Domains: {
@@ -642,8 +642,8 @@ const platformContent: Record<
     copy: "Search, buy, connect, transfer, protect, and auto-renew every business domain in one secure place.",
     action: "Search domains",
     stats: [
-      ["8", "Domains"],
-      ["6", "Connected"],
+      ["Not tracked", "Domains"],
+      ["Not tracked", "Connected"],
       ["100%", "SSL secured"],
     ],
   },
@@ -653,9 +653,9 @@ const platformContent: Record<
     copy: "Trigger autonomous agents on schedules, database changes, form submissions, payments, and customer activity.",
     action: "New automation",
     stats: [
-      ["14", "Active flows"],
-      ["3,822", "Runs"],
-      ["126 hr", "Time saved"],
+      ["Not tracked", "Active flows"],
+      ["Not tracked", "Runs"],
+      ["Not tracked", "Time saved"],
     ],
   },
   Team: {
@@ -664,9 +664,9 @@ const platformContent: Record<
     copy: "Invite collaborators, create roles, protect production, review agent decisions, and control spending.",
     action: "Invite member",
     stats: [
-      ["8", "Members"],
-      ["4", "Roles"],
-      ["26", "Approvals"],
+      ["Not tracked", "Members"],
+      ["Not tracked", "Roles"],
+      ["Not tracked", "Approvals"],
     ],
   },
   Admin: {
@@ -697,8 +697,8 @@ const platformContent: Record<
     copy: "Keep customer-facing policies, operational controls, approval records, and legal review in one accountable workspace.",
     action: "Export legal pack",
     stats: [
-      ["10", "Core policies"],
-      ["20", "Draft pages"],
+      [String(legalPolicies.length), "Core policies"],
+      ["Not tracked", "Draft pages"],
       ["1", "Approval workflow"],
     ],
   },
@@ -708,9 +708,9 @@ const platformContent: Record<
     copy: "Bizorvia verifies that every app can make money, protect customers, survive failure, explain agent actions, and leave the platform cleanly.",
     action: "Run launch audit",
     stats: [
-      ["89%", "Launch ready"],
-      ["74%", "Gross margin"],
-      ["2", "Recovery paths"],
+      ["Not tracked", "Launch ready"],
+      ["Not tracked", "Gross margin"],
+      ["Not tracked", "Recovery paths"],
     ],
   },
   "Business Factory": {
@@ -730,9 +730,9 @@ const platformContent: Record<
     copy: "Every Bizorvia business launches with connected SEO, AEO, GEO, content, social, email, advertising, reputation, affiliate, and conversion systems.",
     action: "Build growth plan",
     stats: [
-      ["86", "Visibility score"],
-      ["42", "Posts queued"],
-      ["7", "Revenue flows"],
+      ["Not tracked", "Visibility score"],
+      ["Not tracked", "Posts queued"],
+      ["Not tracked", "Revenue flows"],
     ],
   },
   "Code Studio": {
@@ -741,9 +741,9 @@ const platformContent: Record<
     copy: "Bizorvia Code understands the entire project, plans changes, edits across files, runs commands, fixes failures, previews results, and presents every diff for approval.",
     action: "Open repository",
     stats: [
-      ["126", "Files indexed"],
-      ["4", "Agents active"],
-      ["0", "Test failures"],
+      ["Not tracked", "Files indexed"],
+      ["Not tracked", "Agents active"],
+      ["Not tracked", "Test failures"],
     ],
   },
   Everywhere: {
@@ -753,7 +753,7 @@ const platformContent: Record<
     action: "Connect a tool",
     stats: [
       ["8", "Work surfaces"],
-      ["36", "Connected tools"],
+      ["Not tracked", "Connected tools"],
       ["1", "Shared memory"],
     ],
   },
@@ -1866,6 +1866,61 @@ function PlatformView({
   const [checkoutLoadingPlan, setCheckoutLoadingPlan] = useState<string | null>(null);
   const [checkoutError, setCheckoutError] = useState("");
   const { user } = useAuth();
+  const [realProjectCount, setRealProjectCount] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (!user) {
+      setRealProjectCount(null);
+      return;
+    }
+    let cancelled = false;
+    (async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session || cancelled) return;
+      try {
+        const res = await fetch("/api/projects", { headers: { Authorization: `Bearer ${session.access_token}` } });
+        if (res.ok) {
+          const d = await res.json().catch(() => ({}));
+          if (!cancelled) setRealProjectCount(Array.isArray(d.projects) ? d.projects.length : 0);
+        }
+      } catch {
+        // leave realProjectCount null — the stat shows "…" rather than a fake number
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [user]);
+
+  const displayStats = content.stats.map(([value, label]) => {
+    if (
+      (section === "Studio" && label === "Projects") ||
+      (section === "Hosting" && label === "Hosted projects")
+    ) {
+      return [realProjectCount === null ? "…" : String(realProjectCount), label] as [string, string];
+    }
+    return [value, label] as [string, string];
+  });
+
+  function downloadLegalPack() {
+    const text = legalPolicies
+      .map(
+        (p) =>
+          `# ${p.title}\n\n${p.summary}\n\n${p.points.map((pt) => `- ${pt}`).join("\n")}\n`,
+      )
+      .join("\n---\n\n");
+    const blob = new Blob([text], { type: "text/markdown" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "bizorvia-legal-pack-draft.md";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    notify("Legal pack downloaded — still drafts, needs attorney review");
+  }
+
   const [showRevenueSim, setShowRevenueSim] = useState(false);
   const [simCounts, setSimCounts] = useState({ builder: 10, business: 3, scale: 1 });
   const [editingPolicy, setEditingPolicy] = useState(false);
@@ -2119,16 +2174,24 @@ function PlatformView({
           <h1>{content.title}</h1>
           <p>{content.copy}</p>
         </div>
-        <button
-          disabled
-          title={`${content.action} isn't built yet`}
-          style={{ opacity: 0.5, cursor: "not-allowed" }}
-        >
-          ＋ {content.action} (soon)
-        </button>
+        {section === "Studio" || section === "Hosting" || section === "Deploy" ? (
+          <button onClick={() => (window.location.href = "/projects")}>
+            ＋ {content.action}
+          </button>
+        ) : section === "Legal" ? (
+          <button onClick={downloadLegalPack}>＋ {content.action}</button>
+        ) : (
+          <button
+            disabled
+            title={`${content.action} isn't built yet`}
+            style={{ opacity: 0.5, cursor: "not-allowed" }}
+          >
+            ＋ {content.action} (soon)
+          </button>
+        )}
       </div>
       <div className="platform-stats">
-        {content.stats.map(([value, label]) => (
+        {displayStats.map(([value, label]) => (
           <article key={label}>
             <b>{value}</b>
             <span>{label}</span>
