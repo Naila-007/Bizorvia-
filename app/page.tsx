@@ -3626,7 +3626,15 @@ function PlatformView({
               "Realtime",
               "API docs",
             ].map((x, i) => (
-              <button key={x} className={i === 0 ? "active" : ""} onClick={() => i !== 0 && notify(`${x} — coming soon, table editor is real`)}>
+              <button
+                key={x}
+                className={i === 0 ? "active" : ""}
+                onClick={() => {
+                  if (i === 0) return;
+                  if (x === "Storage") { window.location.href = "/storage"; return; }
+                  notify(`${x} — coming soon, table editor is real`);
+                }}
+              >
                 {["▦", "⌁", "♙", "□", "◌", "{} "][i]} {x}
               {x === "Storage" && <span style={{marginLeft: "auto", fontSize: "10px", background: "#d8ff7222", color: "#d8ff72", padding: "2px 6px", borderRadius: 4, fontWeight: 700}}>FREE</span>}
               </button>
@@ -3679,8 +3687,11 @@ function PlatformView({
                 onChange={(e) => setDomain(e.target.value)}
                 placeholder="yourdomain.com"
               />
-              <button disabled style={{ opacity: 0.5, cursor: "not-allowed" }}>
-                Coming soon
+              <button
+                onClick={() => (window.location.href = "/projects")}
+                title="Pick a project, then connect this domain from its Domain tab"
+              >
+                Connect in Projects →
               </button>
             </div>
           </div>
