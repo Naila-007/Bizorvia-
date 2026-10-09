@@ -14,6 +14,18 @@ async function getAuthUser(token: string) {
   return user;
 }
 
+// Splitting on "/" and dropping ".." / "." / empty segments closes path
+// traversal completely, unlike a single `.replace(/\.\.\//g, '')` pass —
+// that older approach left a classic bypass: "....//....//x" becomes
+// "../../x" after one pass, because the removal isn't re-scanned.
+function sanitizeZipEntryPath(relativePath: string): string {
+  return relativePath
+    .split('/')
+    .map((segment) => segment.trim())
+    .filter((segment) => segment && segment !== '.' && segment !== '..')
+    .join('/');
+}
+
 // GET — deploy history for a project
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -99,7 +111,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     const uploadPromises: Promise<void>[] = [];
     zip.forEach((relativePath, zipEntry) => {
       if (zipEntry.dir) return;
-      const cleanPath = relativePath.replace(/^\/+/, '').replace(/\.\.\//g, '');
+      const cleanPath = sanitizeZipEntryPath(relativePath);
       if (!cleanPath) return;
 
       const promise = zipEntry.async('arraybuffer').then(async (content) => {

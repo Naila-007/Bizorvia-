@@ -46,7 +46,10 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     const cleanKey = String(body.key).toUpperCase().replace(/[^A-Z0-9_]/g, '_');
     updatedEnv[cleanKey] = String(body.value);
   } else if (body.env && typeof body.env === 'object') {
-    updatedEnv = { ...updatedEnv, ...body.env };
+    for (const [k, v] of Object.entries(body.env)) {
+      const cleanKey = String(k).toUpperCase().replace(/[^A-Z0-9_]/g, '_');
+      if (cleanKey) updatedEnv[cleanKey] = String(v);
+    }
   } else {
     return NextResponse.json({ error: 'Provide { key, value } or { env: {...} }' }, { status: 400 });
   }

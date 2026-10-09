@@ -48,22 +48,21 @@ export async function POST(req: NextRequest) {
   const authHeader = req.headers.get('authorization');
   const token = authHeader?.replace('Bearer ', '');
 
-  let userId: string | null = null;
-  let plan = 'free';
-  let creditsUsed = 0;
-  let creditLimit = 10;
+  // Every caller must be signed in. Without this check, anyone could call
+  // this route with no Authorization header (or a bad one) and skip the
+  // credit check entirely below — a free, unlimited, unmetered way to run
+  // the paid Anthropic API (with web search billed on top) at your cost.
+  if (!token) return NextResponse.json({ error: 'Sign in required' }, { status: 401 });
 
-  if (token) {
-    const { user, profile } = await getUserAndCredits(token);
-    if (user) {
-      userId = user.id;
-      plan = profile?.plan || 'free';
-      creditsUsed = profile?.ai_credits_used || 0;
-      creditLimit = PLAN_LIMITS[plan] || 10;
-      if (creditsUsed >= creditLimit) {
-        return NextResponse.json({ error: `AI credit limit reached (${creditLimit}/mo). Upgrade your plan.`, limitReached: true }, { status: 429 });
-      }
-    }
+  const { user, profile } = await getUserAndCredits(token);
+  if (!user) return NextResponse.json({ error: 'Sign in required' }, { status: 401 });
+
+  const userId: string = user.id;
+  const plan = profile?.plan || 'free';
+  const creditsUsed = profile?.ai_credits_used || 0;
+  const creditLimit = PLAN_LIMITS[plan] || 10;
+  if (creditsUsed >= creditLimit) {
+    return NextResponse.json({ error: `AI credit limit reached (${creditLimit}/mo). Upgrade your plan.`, limitReached: true }, { status: 429 });
   }
 
   let body: { prompt?: string; model?: string; deepResearch?: boolean };
