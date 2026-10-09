@@ -73,7 +73,7 @@ export async function POST(req: NextRequest) {
   if (!name?.trim()) return NextResponse.json({ error: 'Project name is required' }, { status: 400 });
 
   const slug = makeSlug(name.trim(), user.id);
-  const url = `https://bizorvia.com/api/site/${slug}`;
+  const url = const url = `https://sites.bizorvia.com/${slug}`;
 
   const { data: project, error: dbErr } = await admin
     .from('projects')
