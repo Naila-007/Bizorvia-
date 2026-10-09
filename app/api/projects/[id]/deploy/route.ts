@@ -131,9 +131,10 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       last_deployed_at: new Date().toISOString(),
       file_count: uploaded.length,
       status: errors.length === 0 ? 'deployed' : 'partial',
+      url: siteUrl,
     }).eq('id', id);
 
-    const siteUrl = `https://bizorvia.com/api/site/${slug}`;
+    const siteUrl = const siteUrl = `https://sites.bizorvia.com/${slug}`;
     return NextResponse.json({ success: true, slug, siteUrl, filesUploaded: uploaded.length, errors: errors.length > 0 ? errors : undefined });
   } catch (err) {
     console.error('[deploy] Error:', err);
