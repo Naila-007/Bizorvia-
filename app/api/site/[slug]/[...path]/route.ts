@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
-
+const BLOCKED_HOSTS = new Set(["bizorvia.com", "www.bizorvia.com"]);
 // MIME type map for common web file types
 function getMimeType(filePath: string): string {
   const ext = filePath.split(".").pop()?.toLowerCase() ?? "";
@@ -41,7 +41,13 @@ function getMimeType(filePath: string): string {
 export async function GET(
   req: NextRequest,
   { params }: { params: Promise<{ slug: string; path?: string[] }> }
-) {
+) {    const host = (req.headers.get("host") || "").split(":")[0];
+    if (BLOCKED_HOSTS.has(host)) {
+      return NextResponse.json(
+        { error: "User-hosted sites are served from sites.bizorvia.com, not bizorvia.com" },
+        { status: 403 }
+      );
+    }
   try {
     const { slug, path } = await params;
 
