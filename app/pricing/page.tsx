@@ -10,7 +10,7 @@ const plans = [
     name: "Free",
     price: 0,
     desc: "Get started",
-    features: ["3 AI requests/day", "1 project", "Basic tools"],
+    features: ["10 AI requests/month", "3 projects", "Basic tools"],
     cta: "Get started free",
     highlight: false,
   },
@@ -19,7 +19,7 @@ const plans = [
     name: "Builder",
     price: 39,
     desc: "For solo founders",
-    features: ["Unlimited AI requests", "5 projects", "Business Factory", "Email support"],
+    features: ["100 AI requests/month", "20 projects", "Business Factory", "Email support"],
     cta: "Start Builder",
     highlight: false,
   },
@@ -28,7 +28,7 @@ const plans = [
     name: "Business",
     price: 129,
     desc: "For growing teams",
-    features: ["Everything in Builder", "Unlimited projects", "Team members", "Priority support", "Advanced analytics"],
+    features: ["500 AI requests/month", "100 projects", "Team members", "Priority support", "Advanced analytics"],
     cta: "Start Business",
     highlight: true,
   },
@@ -37,7 +37,7 @@ const plans = [
     name: "Scale",
     price: 399,
     desc: "For enterprises",
-    features: ["Everything in Business", "White label", "Custom integrations", "Dedicated support", "SLA guarantee"],
+    features: ["2,000 AI requests/month", "500 projects", "White label", "Custom integrations", "Dedicated support", "SLA guarantee"],
     cta: "Start Scale",
     highlight: false,
   },
@@ -138,7 +138,7 @@ export default function PricingPage() {
           </p>
         </div>
 
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 16 }}>
+        <div className="pricing-grid" style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 16 }}>
           {plans.map((plan) => (
             <div key={plan.id} style={{
               background: plan.highlight ? "#0f1f0f" : "#111",
@@ -200,6 +200,10 @@ export default function PricingPage() {
           All plans include SSL, 99.9% uptime, and cancel anytime. No contracts.
         </p>
       </div>
+      <style>{`
+        @media (max-width: 900px) { .pricing-grid { grid-template-columns: repeat(2, 1fr) !important; } }
+        @media (max-width: 560px) { .pricing-grid { grid-template-columns: 1fr !important; } }
+      `}</style>
     </div>
   );
 }

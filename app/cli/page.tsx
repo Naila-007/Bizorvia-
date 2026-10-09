@@ -76,10 +76,17 @@ export default function CLIPage() {
       <header style={{ borderBottom: '1px solid #1a1a1a', padding: '16px 32px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', position: 'sticky', top: 0, background: '#0a0a0a', zIndex: 10 }}>
         <a href='/' style={{ fontWeight: 700, fontSize: 18, textDecoration: 'none', color: '#fff' }}>Bizorvia</a>
         <div style={{ display: 'flex', gap: 20, alignItems: 'center' }}>
-          <a href='/pricing' style={{ color: '#888', textDecoration: 'none', fontSize: 14 }}>Pricing</a>
-          <a href='/blog' style={{ color: '#888', textDecoration: 'none', fontSize: 14 }}>Blog</a>
-          <a href='/signup' style={{ background: '#d8ff72', color: '#0a0a0a', padding: '8px 20px', borderRadius: 8, fontWeight: 700, fontSize: 13, textDecoration: 'none' }}>Get started free</a>
+          <span className="marketing-nav-links" style={{ display: 'flex', gap: 20, alignItems: 'center' }}>
+            <a href='/pricing' style={{ color: '#888', textDecoration: 'none', fontSize: 14 }}>Pricing</a>
+            <a href='/blog' style={{ color: '#888', textDecoration: 'none', fontSize: 14 }}>Blog</a>
+          </span>
+          <a href='/signup' style={{ background: '#d8ff72', color: '#0a0a0a', padding: '8px 20px', borderRadius: 8, fontWeight: 700, fontSize: 13, textDecoration: 'none', whiteSpace: 'nowrap' }}>Get started free</a>
         </div>
+        <style>{`
+          @media (max-width: 640px) { .marketing-nav-links { display: none !important; } }
+          @media (max-width: 720px) { .cli-features-grid { grid-template-columns: repeat(2, 1fr) !important; } }
+          @media (max-width: 480px) { .cli-features-grid { grid-template-columns: 1fr !important; } }
+        `}</style>
       </header>
 
       {/* Hero */}
@@ -148,7 +155,7 @@ export default function CLIPage() {
       <div style={{ maxWidth: 900, margin: '0 auto 80px', padding: '0 32px' }}>
         <h2 style={{ fontSize: 32, fontWeight: 800, marginBottom: 12, textAlign: 'center' }}>Everything a coding agent should do.</h2>
         <p style={{ color: '#666', textAlign: 'center', marginBottom: 48 }}>Built for developers who want speed without the context-switching.</p>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 20 }}>
+        <div className="cli-features-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 20 }}>
           {features.map(f => (
             <div key={f.title} style={{ background: '#111', border: '1px solid #1a1a1a', borderRadius: 14, padding: 24 }}>
               <div style={{ fontSize: 28, marginBottom: 12 }}>{f.icon}</div>

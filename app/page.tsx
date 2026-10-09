@@ -120,85 +120,85 @@ const cloudModules = [
   {
     icon: "✦",
     title: "Business Factory",
-    copy: "Turn one idea into a branded live business with offers, payments, marketing, sales, and support.",
+    copy: "Describe an idea and get a real AI validation — opportunity, ideal customer, pricing, and next steps. Branding and storefront automation are coming soon.",
     tone: "amber",
   },
   {
     icon: "◈",
     title: "App Studio",
-    copy: "Create websites, mobile apps, stores, portals, and internal tools with a prompt.",
+    copy: "Create websites, online stores, web portals, and internal tools with a prompt — real, hosted projects, live today.",
     tone: "violet",
   },
   {
     icon: "</>",
     title: "Bizorvia Code",
-    copy: "Edit complete codebases with autonomous agents, terminal, previews, tests, diffs, and approval controls.",
+    copy: "A real AI agent that edits your project's code and explains its changes. Automated test runs and diff previews are coming soon.",
     tone: "cyan",
   },
   {
     icon: "⌁",
     title: "Bizorvia Everywhere",
-    copy: "Run the same agent in terminal, Slack, GitHub, browser, email, support, mobile, and APIs.",
+    copy: "Today: the agent runs in your browser and in your terminal via the Bizorvia CLI. Slack, GitHub, email, and mobile are on the roadmap.",
     tone: "violet",
   },
   {
     icon: "☁",
     title: "Bizorvia Cloud",
-    copy: "Managed web and app hosting with CDN, SSL, functions, storage, logs, and backups.",
+    copy: "Real hosting and object storage for every project, live today. A CDN, serverless functions, automatic SSL, and backups are coming soon.",
     tone: "cyan",
   },
   {
     icon: "▦",
     title: "Bizorvia Data",
-    copy: "Postgres database, visual data editor, SQL workspace, auth, storage, and APIs.",
+    copy: "A real visual table editor against your project's Postgres data, live today. A full SQL workspace, authentication, and API access are coming soon.",
     tone: "emerald",
   },
   {
     icon: "▲",
     title: "Global Deploy",
-    copy: "Preview branches, instant production releases, analytics, logs, and rollbacks.",
+    copy: "Ship a project straight to production, live today. Preview branches, analytics, logs, and rollbacks are coming soon.",
     tone: "blue",
   },
   {
     icon: "$",
     title: "Bizorvia Pay",
-    copy: "Checkout, subscriptions, invoices, payment links, taxes, and customer portal.",
+    copy: "Real Stripe checkout, subscription billing, and a customer billing portal, live today. Invoicing, payment links, and automatic tax collection are coming soon.",
     tone: "amber",
   },
   {
     icon: "◎",
     title: "Domains",
-    copy: "Search, purchase, connect, secure, and renew domains without leaving the workspace.",
+    copy: "Connect a domain you already own, live today — DNS is set manually for now. Search, purchase, and auto-renewal are coming soon.",
     tone: "rose",
   },
   {
     icon: "↻",
     title: "Agent Automations",
-    copy: "Schedule work, react to events, connect services, and add human approvals.",
+    copy: "The plan: scheduled tasks, event-triggered workflows, service integrations, and approval routing. On the roadmap — not automated yet.",
     tone: "cyan",
   },
   {
     icon: "◌",
     title: "Growth Studio",
-    copy: "Run SEO, AEO, GEO, content, social, email, ads, reputation, affiliates, and conversion optimization.",
+    copy: "The plan: one system across SEO, content, social, email, and ads — tracking visibility and revenue in one place. On the roadmap — not live yet.",
     tone: "blue",
   },
   {
     icon: "↗",
     title: "Revenue Engine",
-    copy: "Subscriptions, usage billing, platform fees, add-ons, and marketplace income in one model.",
+    copy: "Real Stripe subscription billing, live today. Usage-based billing, platform fees, add-ons, and marketplace income are on the roadmap.",
     tone: "emerald",
   },
   {
     icon: "§",
     title: "Legal & Trust",
-    copy: "Manage terms, privacy, acceptable use, agents, hosting, payments, domains, cookies, and data rules.",
+    copy: "A published Terms of Service and Privacy Policy, kept current. A full in-app policy manager for agents, hosting, payments, and cookies is on the roadmap.",
     tone: "violet",
   },
   {
     icon: "✦",
     title: "Launch OS",
-    copy: "Verify profit, security, compliance, portability, recovery, and customer readiness before every release.",
+    copy: "The plan: automated release checks for security, compliance, and recovery before every deploy. On the roadmap — see below.",
     tone: "amber",
   },
 ];
@@ -589,7 +589,7 @@ const platformContent: Record<
     stats: [
       ["7", "Projects"],
       ["Not tracked", "Live apps"],
-      ["99.99%", "Uptime"],
+      ["Not tracked", "Uptime"],
     ],
   },
   Hosting: {
@@ -599,8 +599,8 @@ const platformContent: Record<
     action: "Host new project",
     stats: [
       ["6", "Hosted projects"],
-      ["99.99%", "Uptime"],
-      ["184 ms", "Global latency"],
+      ["Not tracked", "Uptime"],
+      ["Not tracked", "Global latency"],
     ],
   },
   Deploy: {
@@ -610,7 +610,7 @@ const platformContent: Record<
     action: "New deployment",
     stats: [
       ["Not tracked", "Deployments"],
-      ["184 ms", "Global latency"],
+      ["Not tracked", "Global latency"],
       ["Not tracked", "Build errors"],
     ],
   },
@@ -644,7 +644,7 @@ const platformContent: Record<
     stats: [
       ["Not tracked", "Domains"],
       ["Not tracked", "Connected"],
-      ["100%", "SSL secured"],
+      ["Not tracked", "SSL secured"],
     ],
   },
   Automations: {
@@ -675,9 +675,9 @@ const platformContent: Record<
     copy: "Monitor customers, revenue, projects, infrastructure, security, approvals, support, and platform health with owner-level controls.",
     action: "Open admin action",
     stats: [
-      ["1,284", "Customers"],
-      ["$18.4k", "Monthly revenue"],
-      ["99.99%", "Platform uptime"],
+      ["Not tracked", "Customers"],
+      ["Not tracked", "Monthly revenue"],
+      ["Not tracked", "Platform uptime"],
     ],
   },
   Pricing: {
@@ -688,7 +688,7 @@ const platformContent: Record<
     stats: [
       ["$39", "Builder / mo"],
       ["70%+", "Gross margin goal"],
-      ["8", "Revenue streams"],
+      ["1", "Revenue stream live: subscriptions"],
     ],
   },
   Legal: {
@@ -719,7 +719,7 @@ const platformContent: Record<
     copy: "Bizorvia validates the opportunity, creates the offer and brand, builds the product, connects payments and domains, launches marketing, and operates the customer journey.",
     action: "Start a business",
     stats: [
-      ["8", "Automated stages"],
+      ["1", "Automated today: Validate"],
       ["24/7", "Digital CEO"],
       ["1", "Owner approval inbox"],
     ],
@@ -748,11 +748,11 @@ const platformContent: Record<
   },
   Everywhere: {
     kicker: "AGENT PRESENCE LAYER",
-    title: "One agent in every tool, at every step",
-    copy: "Bizorvia Everywhere carries the same project memory, permissions, decisions, and audit trail across terminal, Slack, GitHub, browser, email, support, mobile, and APIs.",
+    title: "The same agent, in your browser and your terminal",
+    copy: "Today, the Bizorvia agent runs in your browser and in your terminal through the Bizorvia CLI, sharing the same project context. Slack, GitHub, email, support, and mobile are on the roadmap.",
     action: "Connect a tool",
     stats: [
-      ["8", "Work surfaces"],
+      ["2", "Work surfaces live"],
       ["Not tracked", "Connected tools"],
       ["1", "Shared memory"],
     ],
@@ -1140,6 +1140,7 @@ export default function Home() {
             </div>
           )}
           <div className="sidebar-footer-links" style={{marginTop: '8px', borderTop: '1px solid #1e2920', paddingTop: '16px', display: 'flex', flexDirection: 'column', gap: '4px'}}>
+            <a href="/platform" style={{color: '#7a9a7a', fontSize: '12px', textDecoration: 'none', padding: '6px 12px', borderRadius: '6px'}}>🧭 Platform</a>
             <a href="/blog" style={{color: '#7a9a7a', fontSize: '12px', textDecoration: 'none', padding: '6px 12px', borderRadius: '6px'}}>📝 Blog</a>
             <a href="/contact" style={{color: '#7a9a7a', fontSize: '12px', textDecoration: 'none', padding: '6px 12px', borderRadius: '6px'}}>✉️ Contact</a>
             <a href="/profile" style={{color: '#7a9a7a', fontSize: '12px', textDecoration: 'none', padding: '6px 12px', borderRadius: '6px'}}>👤 Profile</a>

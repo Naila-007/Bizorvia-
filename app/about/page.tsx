@@ -12,10 +12,14 @@ export default function AboutPage() {
       <header style={{ borderBottom: '1px solid #1a1a1a', padding: '16px 32px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <a href='/' style={{ fontWeight: 700, fontSize: 18, textDecoration: 'none', color: '#fff' }}>Bizorvia</a>
         <div style={{ display: 'flex', gap: 16, alignItems: 'center' }}>
-          <a href='/pricing' style={{ color: '#888', textDecoration: 'none', fontSize: 14 }}>Pricing</a>
-          <a href='/blog' style={{ color: '#888', textDecoration: 'none', fontSize: 14 }}>Blog</a>
-          <a href='/login' style={{ background: '#d8ff72', color: '#0a0a0a', padding: '8px 20px', borderRadius: 8, fontWeight: 700, fontSize: 13, textDecoration: 'none' }}>Start free</a>
+          <span className="marketing-nav-links" style={{ display: 'flex', gap: 16, alignItems: 'center' }}>
+            <a href='/platform' style={{ color: '#888', textDecoration: 'none', fontSize: 14 }}>Platform</a>
+            <a href='/pricing' style={{ color: '#888', textDecoration: 'none', fontSize: 14 }}>Pricing</a>
+            <a href='/blog' style={{ color: '#888', textDecoration: 'none', fontSize: 14 }}>Blog</a>
+          </span>
+          <a href='/login' style={{ background: '#d8ff72', color: '#0a0a0a', padding: '8px 20px', borderRadius: 8, fontWeight: 700, fontSize: 13, textDecoration: 'none', whiteSpace: 'nowrap' }}>Start free</a>
         </div>
+        <style>{`@media (max-width: 640px) { .marketing-nav-links { display: none !important; } }`}</style>
       </header>
 
       <div style={{ maxWidth: 860, margin: '0 auto', padding: '80px 32px' }}>

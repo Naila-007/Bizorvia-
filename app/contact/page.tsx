@@ -76,10 +76,10 @@ export default function ContactPage() {
             { icon: '📧', label: 'Email us', value: 'oracledigitalmarketingagency@gmail.com', href: 'mailto:oracledigitalmarketingagency@gmail.com' },
             { icon: '⚡', label: 'Response time', value: 'Within 24 hours', href: null },
           ].map(item => (
-            <div key={item.label} style={{ background: '#111', border: '1px solid #1a1a1a', borderRadius: 12, padding: 20 }}>
+            <div key={item.label} style={{ background: '#111', border: '1px solid #1a1a1a', borderRadius: 12, padding: 20, minWidth: 0 }}>
               <div style={{ fontSize: 24, marginBottom: 8 }}>{item.icon}</div>
               <div style={{ color: '#666', fontSize: 12, marginBottom: 4 }}>{item.label}</div>
-              {item.href ? <a href={item.href} style={{ color: '#d8ff72', fontSize: 13 }}>{item.value}</a> : <span style={{ color: '#fff', fontSize: 13 }}>{item.value}</span>}
+              {item.href ? <a href={item.href} style={{ color: '#d8ff72', fontSize: 13, overflowWrap: 'anywhere', wordBreak: 'break-word' }}>{item.value}</a> : <span style={{ color: '#fff', fontSize: 13, overflowWrap: 'anywhere', wordBreak: 'break-word' }}>{item.value}</span>}
             </div>
           ))}
         </div>

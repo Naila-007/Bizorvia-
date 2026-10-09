@@ -12,6 +12,7 @@ const FW_NAMES: Record<string,string> = { html:'HTML/CSS/JS', nextjs:'Next.js', 
 const STATUS_COLORS: Record<string,string> = { pending:'#555', created:'#555', deployed:'#d8ff72', partial:'#fb923c', error:'#ff4444', building:'#fb923c' };
 
 function fmt(s?:string){ if(!s) return 'Never'; return new Date(s).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric',hour:'2-digit',minute:'2-digit'}); }
+function formatBytes(b:number){ if(!b||b<=0) return '0 MB'; const mb=b/(1024*1024); if(mb<1) return `${(b/1024).toFixed(1)} KB`; if(mb<1024) return `${mb.toFixed(1)} MB`; return `${(mb/1024).toFixed(2)} GB`; }
 
 export default function ProjectsPage() {
   const { user, loading } = useAuth();
@@ -36,6 +37,7 @@ export default function ProjectsPage() {
   const [domain,setDomain] = useState('');
   const [savingDomain,setSavingDomain] = useState(false);
   const [dnsInfo,setDnsInfo] = useState<any>(null);
+  const [storageUsage,setStorageUsage] = useState<{totalBytes:number;limitBytes:number}|null>(null);
 
   useEffect(()=>{ if(!loading&&!user) router.push('/login'); },[loading,user]);
   const notify=(m:string)=>{ setToast(m); setTimeout(()=>setToast(''),3500); };
@@ -49,15 +51,31 @@ export default function ProjectsPage() {
   }
   useEffect(()=>{ if(user) loadProjects(); },[user]);
 
+  async function loadStorageUsage(){
+    const t=await getToken();
+    if(!t) return;
+    try{
+      const res=await fetch('/api/storage',{headers:{Authorization:`Bearer ${t}`}});
+      if(res.ok){ const d=await res.json(); setStorageUsage({totalBytes:d.totalBytes||0, limitBytes:d.limitBytes||500*1024*1024}); }
+    }catch{ /* leave storageUsage null — the tile shows an honest loading state, never a fake number */ }
+  }
+  useEffect(()=>{ if(user) loadStorageUsage(); },[user]);
+
   async function createProject(e:React.FormEvent){
     e.preventDefault(); if(!newName.trim()) return;
     setCreating(true);
-    const t=await getToken();
-    const res=await fetch('/api/projects',{method:'POST',headers:{Authorization:`Bearer ${t}`,'Content-Type':'application/json'},body:JSON.stringify({name:newName,framework:newFw})});
-    const data=await res.json();
-    if(res.ok){notify('✓ Project created!');setNewName('');await loadProjects();setView('list');}
-    else notify(`✗ ${data.error}`);
-    setCreating(false);
+    try{
+      const t=await getToken();
+      const res=await fetch('/api/projects',{method:'POST',headers:{Authorization:`Bearer ${t}`,'Content-Type':'application/json'},body:JSON.stringify({name:newName,framework:newFw})});
+      let data:any={};
+      try{ data=await res.json(); }catch{ notify(`✗ Server error (${res.status}). Please try again.`); return; }
+      if(res.ok){notify('✓ Project created!');setNewName('');await loadProjects();setView('list');}
+      else notify(`✗ ${data.error||'Something went wrong.'}`);
+    }catch{
+      notify('✗ Network error — please check your connection and try again.');
+    }finally{
+      setCreating(false);
+    }
   }
 
   async function openProject(p:Project){
@@ -70,41 +88,65 @@ export default function ProjectsPage() {
   async function deployZip(){
     if(!deployFile||!selected) return;
     setDeploying(true);
-    const t=await getToken();
-    const fd=new FormData(); fd.append('file',deployFile);
-    const res=await fetch(`/api/projects/${selected.id}/deploy`,{method:'POST',headers:{Authorization:`Bearer ${t}`},body:fd});
-    const data=await res.json();
-    if(res.ok){notify('✓ Deployed!');setDeployFile(null);await loadProjects();}
-    else notify(`✗ ${data.error}`);
-    setDeploying(false);
+    try{
+      const t=await getToken();
+      const fd=new FormData(); fd.append('file',deployFile);
+      const res=await fetch(`/api/projects/${selected.id}/deploy`,{method:'POST',headers:{Authorization:`Bearer ${t}`},body:fd});
+      let data:any={};
+      try{ data=await res.json(); }catch{ notify(`✗ Server error (${res.status}). Please try again.`); return; }
+      if(res.ok){notify('✓ Deployed!');setDeployFile(null);await loadProjects();}
+      else notify(`✗ ${data.error||'Something went wrong.'}`);
+    }catch{
+      notify('✗ Network error — please check your connection and try again.');
+    }finally{
+      setDeploying(false);
+    }
   }
 
   async function saveEnv(e:React.FormEvent){
     e.preventDefault(); if(!envKey||!envVal||!selected) return;
     setSavingEnv(true);
-    const t=await getToken();
-    const res=await fetch(`/api/projects/${selected.id}/env`,{method:'POST',headers:{Authorization:`Bearer ${t}`,'Content-Type':'application/json'},body:JSON.stringify({key:envKey.toUpperCase(),value:envVal})});
-    if(res.ok){notify(`✓ ${envKey} saved`);setEnvKey('');setEnvVal('');setEnvList(l=>[...l,{key:envKey.toUpperCase(),value:'***'}]);}
-    else{const d=await res.json();notify(`✗ ${d.error}`);}
-    setSavingEnv(false);
+    try{
+      const t=await getToken();
+      const res=await fetch(`/api/projects/${selected.id}/env`,{method:'POST',headers:{Authorization:`Bearer ${t}`,'Content-Type':'application/json'},body:JSON.stringify({key:envKey.toUpperCase(),value:envVal})});
+      let d:any={};
+      try{ d=await res.json(); }catch{ notify(`✗ Server error (${res.status}). Please try again.`); return; }
+      if(res.ok){notify(`✓ ${envKey} saved`);setEnvKey('');setEnvVal('');setEnvList(l=>[...l,{key:envKey.toUpperCase(),value:'***'}]);}
+      else notify(`✗ ${d.error||'Something went wrong.'}`);
+    }catch{
+      notify('✗ Network error — please check your connection and try again.');
+    }finally{
+      setSavingEnv(false);
+    }
   }
 
   async function saveDomain(e:React.FormEvent){
     e.preventDefault(); if(!domain||!selected) return;
     setSavingDomain(true);
-    const t=await getToken();
-    const res=await fetch(`/api/projects/${selected.id}/domain`,{method:'POST',headers:{Authorization:`Bearer ${t}`,'Content-Type':'application/json'},body:JSON.stringify({domain})});
-    const data=await res.json();
-    if(res.ok){notify('✓ Domain connected!');setDnsInfo(data.dnsInfo);}
-    else notify(`✗ ${data.error}`);
-    setSavingDomain(false);
+    try{
+      const t=await getToken();
+      const res=await fetch(`/api/projects/${selected.id}/domain`,{method:'POST',headers:{Authorization:`Bearer ${t}`,'Content-Type':'application/json'},body:JSON.stringify({domain})});
+      let data:any={};
+      try{ data=await res.json(); }catch{ notify(`✗ Server error (${res.status}). Please try again.`); return; }
+      if(res.ok){notify('✓ Domain connected!');setDnsInfo(data.dnsInfo);}
+      else notify(`✗ ${data.error||'Something went wrong.'}`);
+    }catch{
+      notify('✗ Network error — please check your connection and try again.');
+    }finally{
+      setSavingDomain(false);
+    }
   }
 
   async function deleteProject(p:Project){
     if(!confirm(`Delete "${p.name}"? This removes the live site.`)) return;
-    const t=await getToken();
-    await fetch(`/api/projects/${p.id}`,{method:'DELETE',headers:{Authorization:`Bearer ${t}`}});
-    notify('✓ Deleted');setView('list');await loadProjects();
+    try{
+      const t=await getToken();
+      const res=await fetch(`/api/projects/${p.id}`,{method:'DELETE',headers:{Authorization:`Bearer ${t}`}});
+      if(res.ok){notify('✓ Deleted');setView('list');await loadProjects();}
+      else notify('✗ Delete failed — please try again.');
+    }catch{
+      notify('✗ Network error — please check your connection and try again.');
+    }
   }
 
   const S={btn:{background:'#111',border:'1px solid #2a2a2a',color:'#888',padding:'7px 16px',borderRadius:'8px',cursor:'pointer',fontSize:'13px'},inp:{background:'#111',border:'1px solid #2a2a2a',borderRadius:'8px',padding:'11px 14px',color:'#fff',fontSize:'14px',outline:'none',width:'100%',boxSizing:'border-box' as const}};
@@ -143,13 +185,32 @@ export default function ProjectsPage() {
               </div>
               <div style={{fontSize:10,color:'#444'}}>free tier</div>
             </div>
-            {['Bandwidth','Functions','Storage'].map(l=>(
+            {['Bandwidth','Functions'].map(l=>(
               <div key={l}>
                 <div style={{fontSize:11,color:'#666',marginBottom:6}}>{l}</div>
                 <div style={{fontSize:13,color:'#555',marginBottom:3}}>—</div>
-                <div style={{fontSize:10,color:'#444'}}>usage tracking coming soon</div>
+                <div style={{fontSize:10,color:'#444'}}>usage tracking not built yet</div>
               </div>
             ))}
+            <div>
+              <div style={{fontSize:11,color:'#666',marginBottom:6}}>Storage</div>
+              {storageUsage ? (
+                <>
+                  <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:3}}>
+                    <div style={{flex:1,background:'#1a1a1a',borderRadius:99,height:5,overflow:'hidden'}}>
+                      <div style={{background:'#d8ff72',width:`${Math.min(100,(storageUsage.totalBytes/storageUsage.limitBytes)*100)}%`,height:'100%',borderRadius:99}}/>
+                    </div>
+                    <span style={{fontSize:10,color:'#555',whiteSpace:'nowrap'}}>{formatBytes(storageUsage.totalBytes)}</span>
+                  </div>
+                  <div style={{fontSize:10,color:'#444'}}>of {formatBytes(storageUsage.limitBytes)} free tier</div>
+                </>
+              ) : (
+                <>
+                  <div style={{fontSize:13,color:'#555',marginBottom:3}}>—</div>
+                  <div style={{fontSize:10,color:'#444'}}>loading usage…</div>
+                </>
+              )}
+            </div>
           </div>
 
           {projects.length===0?(
