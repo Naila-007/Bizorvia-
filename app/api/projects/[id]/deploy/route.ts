@@ -127,6 +127,8 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
 
     await Promise.all(uploadPromises);
 
+    const siteUrl = `https://sites.bizorvia.com/${slug}`;
+
     await admin.from('projects').update({
       last_deployed_at: new Date().toISOString(),
       file_count: uploaded.length,
@@ -134,7 +136,6 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       url: siteUrl,
     }).eq('id', id);
 
-    const siteUrl = const siteUrl = `https://sites.bizorvia.com/${slug}`;
     return NextResponse.json({ success: true, slug, siteUrl, filesUploaded: uploaded.length, errors: errors.length > 0 ? errors : undefined });
   } catch (err) {
     console.error('[deploy] Error:', err);
